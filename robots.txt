@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://Mutakola123.github.io/adwa/sitemap.xml
