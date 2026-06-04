@@ -584,34 +584,44 @@ function handleAddProperty(e) {
     e.preventDefault();
     const formData = new FormData(e.target);
 
+    // التحقق من الحقول المطلوبة
+    const title = formData.get('title');
+    const type = formData.get('type');
+    const purpose = formData.get('purpose');
+    const price = parseInt(formData.get('price'));
+    const area = parseInt(formData.get('area'));
+    const city = formData.get('city');
+    const district = formData.get('district');
+    const phone = formData.get('phone');
+    const description = formData.get('description');
+
+    if (!title || !type || !purpose || !price || !area || !city || !district || !phone || !description) {
+        showToast('خطأ', 'يرجى ملء جميع الحقول المطلوبة', 'error');
+        return;
+    }
+
     const gallery = formData.get('gallery')
         ? formData.get('gallery').split(',').map(s => s.trim()).filter(s => s)
         : [];
 
     const newProperty = {
-        title: formData.get('title'),
-        type: formData.get('type'),
-        purpose: formData.get('purpose'),
-        price: parseInt(formData.get('price')),
-        area: parseInt(formData.get('area')),
-        city: formData.get('city'),
-        cityName: CITIES[formData.get('city')],
-        district: formData.get('district'),
+        title: title,
+        type: type,
+        purpose: purpose,
+        price: price,
+        area: area,
+        city: city,
+        cityName: CITIES[city] || 'الرياض',
+        district: district,
         rooms: parseInt(formData.get('rooms')) || 0,
         bathrooms: parseInt(formData.get('bathrooms')) || 0,
         image: getPropertyImage(formData.get('image')),
         gallery: gallery.length > 0 ? gallery : [DEFAULT_IMAGE],
-        description: formData.get('description'),
-        phone: formData.get('phone'),
+        description: description,
+        phone: phone,
         owner: formData.get('owner') || 'مستخدم',
-        priceUnit: formData.get('purpose') === 'rent' ? 'شهرياً' : ''
+        priceUnit: purpose === 'rent' ? 'شهرياً' : ''
     };
-
-    // التحقق من الحقول
-    if (!newProperty.title || !newProperty.type || !newProperty.purpose || !newProperty.price) {
-        showToast('خطأ', 'يرجى ملء جميع الحقول المطلوبة', 'error');
-        return;
-    }
 
     addProperty(newProperty);
 

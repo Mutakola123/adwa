@@ -482,23 +482,27 @@ window.approveProperty = function(id) {
 
 window.openEditModal = function(id) {
     const property = getPropertyById(id);
-    if (!property) return;
+    if (!property) {
+        showToast('خطأ', 'لم يتم العثور على العقار', 'error');
+        return;
+    }
 
     const form = document.getElementById('editForm');
-    form.id.value = property.id;
-    form.title.value = property.title;
-    form.type.value = property.type;
-    form.purpose.value = property.purpose;
-    form.price.value = property.price;
-    form.area.value = property.area;
-    form.city.value = property.city;
-    form.district.value = property.district;
-    form.rooms.value = property.rooms || 0;
-    form.bathrooms.value = property.bathrooms || 0;
-    form.phone.value = property.phone;
-    form.image.value = property.image;
-    form.description.value = property.description;
-    form.status.value = property.status || 'pending';
+    // استخدام querySelector للوصول للحقول بأمان
+    form.querySelector('[name="id"]').value = property.id;
+    form.querySelector('[name="title"]').value = property.title || '';
+    form.querySelector('[name="type"]').value = property.type || 'villa';
+    form.querySelector('[name="purpose"]').value = property.purpose || 'sale';
+    form.querySelector('[name="price"]').value = property.price || 0;
+    form.querySelector('[name="area"]').value = property.area || 0;
+    form.querySelector('[name="city"]').value = property.city || 'riyadh';
+    form.querySelector('[name="district"]').value = property.district || '';
+    form.querySelector('[name="rooms"]').value = property.rooms || 0;
+    form.querySelector('[name="bathrooms"]').value = property.bathrooms || 0;
+    form.querySelector('[name="phone"]').value = property.phone || '';
+    form.querySelector('[name="image"]').value = property.image || '';
+    form.querySelector('[name="description"]').value = property.description || '';
+    form.querySelector('[name="status"]').value = property.status || 'pending';
 
     document.getElementById('editModal').classList.add('active');
 };
@@ -512,28 +516,48 @@ function handleEditSubmit(e) {
     const formData = new FormData(e.target);
     const id = formData.get('id');
 
+    if (!id) {
+        showToast('خطأ', 'لم يتم تحديد العقار. يرجى إعادة فتح نافذة التعديل', 'error');
+        return;
+    }
+
+    // التحقق من الحقول المطلوبة
+    const title = formData.get('title');
+    const price = parseInt(formData.get('price'));
+    const area = parseInt(formData.get('area'));
+    const phone = formData.get('phone');
+
+    if (!title || !price || !area || !phone) {
+        showToast('خطأ', 'يرجى ملء جميع الحقول المطلوبة', 'error');
+        return;
+    }
+
     const updates = {
-        title: formData.get('title'),
+        title: title,
         type: formData.get('type'),
         purpose: formData.get('purpose'),
-        price: parseInt(formData.get('price')),
-        area: parseInt(formData.get('area')),
+        price: price,
+        area: area,
         city: formData.get('city'),
-        cityName: CITIES[formData.get('city')],
+        cityName: CITIES[formData.get('city')] || 'الرياض',
         district: formData.get('district'),
         rooms: parseInt(formData.get('rooms')) || 0,
         bathrooms: parseInt(formData.get('bathrooms')) || 0,
-        phone: formData.get('phone'),
+        phone: phone,
         image: getPropertyImage(formData.get('image')),
         description: formData.get('description'),
         status: formData.get('status'),
         priceUnit: formData.get('purpose') === 'rent' ? 'شهرياً' : ''
     };
 
-    updateProperty(id, updates);
-    closeEditModal();
-    showToast('تم التحديث', 'تم حفظ التغييرات بنجاح', 'success');
-    refreshAll();
+    const result = updateProperty(id, updates);
+    if (result) {
+        closeEditModal();
+        showToast('تم التحديث', 'تم حفظ التغييرات بنجاح', 'success');
+        refreshAll();
+    } else {
+        showToast('خطأ', 'فشل حفظ التغييرات. يرجى المحاولة مرة أخرى', 'error');
+    }
 }
 
 window.viewProperty = function(id) {
@@ -564,28 +588,44 @@ function handleAdminAdd(e) {
     e.preventDefault();
     const formData = new FormData(e.target);
 
+    // التحقق من الحقول المطلوبة
+    const title = formData.get('title');
+    const type = formData.get('type');
+    const purpose = formData.get('purpose');
+    const price = parseInt(formData.get('price'));
+    const area = parseInt(formData.get('area'));
+    const city = formData.get('city');
+    const district = formData.get('district');
+    const phone = formData.get('phone');
+    const description = formData.get('description');
+
+    if (!title || !type || !purpose || !price || !area || !city || !district || !phone || !description) {
+        showToast('خطأ', 'يرجى ملء جميع الحقول المطلوبة', 'error');
+        return;
+    }
+
     const gallery = formData.get('gallery')
         ? formData.get('gallery').split(',').map(s => s.trim()).filter(s => s)
         : [];
 
     const newProperty = {
-        title: formData.get('title'),
-        type: formData.get('type'),
-        purpose: formData.get('purpose'),
-        price: parseInt(formData.get('price')),
-        area: parseInt(formData.get('area')),
-        city: formData.get('city'),
-        cityName: CITIES[formData.get('city')],
-        district: formData.get('district'),
+        title: title,
+        type: type,
+        purpose: purpose,
+        price: price,
+        area: area,
+        city: city,
+        cityName: CITIES[city] || 'الرياض',
+        district: district,
         rooms: parseInt(formData.get('rooms')) || 0,
         bathrooms: parseInt(formData.get('bathrooms')) || 0,
         image: getPropertyImage(formData.get('image')),
         gallery: gallery.length > 0 ? gallery : [DEFAULT_IMAGE],
-        description: formData.get('description'),
-        phone: formData.get('phone'),
+        description: description,
+        phone: phone,
         owner: 'مكتب أضواء الفيصلية',
         featured: formData.get('featured') === 'on',
-        priceUnit: formData.get('purpose') === 'rent' ? 'شهرياً' : ''
+        priceUnit: purpose === 'rent' ? 'شهرياً' : ''
     };
 
     addApprovedProperty(newProperty);
