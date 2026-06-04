@@ -1,0 +1,42 @@
+# ملفات Excel وملفات الحسابات
+*.xlsx
+*.xls
+*.csv
+
+# المجلدات الأخرى غير المرتبطة بالمشروع
+مدير_العقارات/
+مدير_العقارات_تنفيذي/
+
+# ملفات النظام
+.DS_Store
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+
+# ملفات المحرر
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ملفات السجلات
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# متغيرات البيئة
+.env
+.env.local
+.env.*.local
+
+# ملفات مؤقتة
+tmp/
+temp/
+*.tmp
+
+# ملفات Node (إن وجدت)
+node_modules/
+package-lock.json
+yarn.lock

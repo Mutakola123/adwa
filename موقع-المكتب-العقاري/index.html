@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="مكتب أضواء الفيصلية للخدمات العقارية - خبرة عقارية متكاملة لبيع وإيجار الفلل والشقق والأراضي والمحلات التجارية في المملكة العربية السعودية">
+    <title>أضواء الفيصلية | مكتب عقاري رائد في المملكة العربية السعودية</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230a1f3d'/%3E%3Cpath d='M50 25L25 45v30h20V60h10v15h20V45z' fill='%23c9a96e'/%3E%3C/svg%3E">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <!-- شريط التنقل العلوي -->
+    <header class="navbar" id="navbar">
+        <div class="container nav-container">
+            <a href="#home" class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-gem"></i>
+                </div>
+                <div class="logo-text">
+                    <span class="logo-title">أضواء الفيصلية</span>
+                    <span class="logo-subtitle">للخدمات العقارية</span>
+                </div>
+            </a>
+
+            <nav class="nav-menu" id="navMenu">
+                <a href="#home" class="nav-link active">الرئيسية</a>
+                <a href="#listings" class="nav-link">العقارات</a>
+                <a href="#add-property" class="nav-link">أضف عقارك</a>
+                <a href="#request" class="nav-link">اطلب عقارك</a>
+                <a href="#contact" class="nav-link">تواصل معنا</a>
+            </nav>
+
+            <div class="nav-actions">
+                <a href="tel:+966595305559" class="phone-link">
+                    <i class="fas fa-phone"></i>
+                    <span>0595305559</span>
+                </a>
+                <button class="menu-toggle" id="menuToggle" aria-label="القائمة">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- قسم الواجهة الرئيسية -->
+    <section class="hero" id="home">
+        <div class="hero-overlay"></div>
+        <div class="hero-particles"></div>
+        <div class="container hero-content">
+            <div class="hero-badge">
+                <i class="fas fa-star"></i>
+                <span>شريكك الموثوق في عالم العقارات الفاخرة</span>
+            </div>
+            <h1 class="hero-title">
+                ابحث عن عقار <span class="gold-text">أحلامك</span>
+                <br>بكل سهولة وثقة
+            </h1>
+            <p class="hero-description">
+                نقدم لك تجربة عقارية استثنائية مع أفخم الفلل، الشقق الراقية، والمحلات التجارية
+                في أرقى أحياء المملكة العربية السعودية
+            </p>
+
+            <!-- شريط البحث الذكي -->
+            <div class="search-box">
+                <div class="search-tabs">
+                    <button class="search-tab active" data-purpose="all">الكل</button>
+                    <button class="search-tab" data-purpose="sale">للبيع</button>
+                    <button class="search-tab" data-purpose="rent">للإيجار</button>
+                </div>
+                <form class="search-form" id="searchForm">
+                    <div class="search-field">
+                        <label><i class="fas fa-building"></i> نوع العقار</label>
+                        <select name="type" id="searchType">
+                            <option value="all">جميع الأنواع</option>
+                            <option value="villa">فيلا</option>
+                            <option value="apartment">شقة</option>
+                            <option value="shop">معرض تجاري</option>
+                            <option value="land">أرض</option>
+                        </select>
+                    </div>
+                    <div class="search-field">
+                        <label><i class="fas fa-map-marker-alt"></i> المدينة / الحي</label>
+                        <select name="city" id="searchCity">
+                            <option value="all">جميع المدن</option>
+                            <option value="riyadh">الرياض</option>
+                            <option value="muzahmiya">المزاحمية</option>
+                        </select>
+                    </div>
+                    <div class="search-field">
+                        <label><i class="fas fa-tag"></i> الغرض</label>
+                        <select name="purpose" id="searchPurpose">
+                            <option value="all">للبيع أو للإيجار</option>
+                            <option value="sale">للبيع</option>
+                            <option value="rent">للإيجار</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="search-btn">
+                        <i class="fas fa-search"></i>
+                        <span>ابحث الآن</span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- إحصائيات سريعة -->
+            <div class="hero-stats">
+                <div class="stat">
+                    <div class="stat-number" data-count="1250">0</div>
+                    <div class="stat-label">عقار متاح</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number" data-count="850">0</div>
+                    <div class="stat-label">عميل سعيد</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number" data-count="15">0</div>
+                    <div class="stat-label">سنة خبرة</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number" data-count="98">0</div>
+                    <div class="stat-label">% رضا العملاء</div>
+                </div>
+            </div>
+        </div>
+        <a href="#listings" class="scroll-down">
+            <i class="fas fa-chevron-down"></i>
+        </a>
+    </section>
+
+    <!-- قسم المميزات -->
+    <section class="features">
+        <div class="container">
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-shield-halved"></i>
+                    </div>
+                    <h3>موثوقية وأمان</h3>
+                    <p>جميع عقاراتنا موثقة ومطابقة للأنظمة العقارية في المملكة</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-handshake"></i>
+                    </div>
+                    <h3>خبرة طويلة</h3>
+                    <p>فريقنا يمتلك خبرة تتجاوز 15 عاماً في السوق العقاري السعودي</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-gem"></i>
+                    </div>
+                    <h3>عقارات فاخرة</h3>
+                    <p>نختار لك أفضل العقارات في أرقى الأحياء والمناطق</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-headset"></i>
+                    </div>
+                    <h3>دعم متواصل</h3>
+                    <p>فريق خدمة العملاء متاح على مدار الساعة لمساعدتك</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- شبكة عرض العقارات -->
+    <section class="listings" id="listings">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-badge">العقارات المميزة</span>
+                <h2 class="section-title">اكتشف عقاراتنا <span class="gold-text">الفاخرة</span></h2>
+                <p class="section-description">
+                    تصفح مجموعتنا الحصرية من العقارات المختارة بعناية لتناسب كافة احتياجاتك
+                </p>
+            </div>
+
+            <!-- نظام الفلترة المتطور -->
+            <div class="filters-panel">
+                <div class="filters-header">
+                    <h3><i class="fas fa-sliders"></i> فلترة متقدمة</h3>
+                    <button class="filter-toggle" id="filterToggle">
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                </div>
+                <div class="filters-content" id="filtersContent">
+                    <div class="filter-group">
+                        <label>نوع العقار</label>
+                        <div class="filter-chips" id="typeChips">
+                            <button class="chip active" data-type="all">الكل</button>
+                            <button class="chip" data-type="villa">فيلا</button>
+                            <button class="chip" data-type="apartment">شقة</button>
+                            <button class="chip" data-type="shop">معرض تجاري</button>
+                            <button class="chip" data-type="land">أرض</button>
+                        </div>
+                    </div>
+                    <div class="filter-group">
+                        <label>المدينة</label>
+                        <div class="filter-chips" id="cityChips">
+                            <button class="chip active" data-city="all">الكل</button>
+                            <button class="chip" data-city="riyadh">الرياض</button>
+                            <button class="chip" data-city="muzahmiya">المزاحمية</button>
+                        </div>
+                    </div>
+                    <div class="filter-group">
+                        <label>السعر الأقصى: <span id="maxPriceLabel">10,000,000</span> ر.س</label>
+                        <input type="range" id="maxPrice" min="100000" max="10000000" step="100000" value="10000000" class="range-slider">
+                    </div>
+                    <div class="filter-group">
+                        <label>المساحة الأدنى: <span id="minAreaLabel">0</span> م²</label>
+                        <input type="range" id="minArea" min="0" max="1000" step="50" value="0" class="range-slider">
+                    </div>
+                    <button class="reset-filters" id="resetFilters">
+                        <i class="fas fa-redo"></i> إعادة تعيين
+                    </button>
+                </div>
+            </div>
+
+            <!-- عداد النتائج -->
+            <div class="results-info">
+                <p>عدد النتائج: <span id="resultsCount">0</span> عقار</p>
+                <select id="sortBy" class="sort-select">
+                    <option value="newest">الأحدث</option>
+                    <option value="price-asc">السعر: من الأقل للأعلى</option>
+                    <option value="price-desc">السعر: من الأعلى للأقل</option>
+                    <option value="area-desc">المساحة: الأكبر أولاً</option>
+                </select>
+            </div>
+
+            <!-- شبكة العقارات -->
+            <div class="listings-grid" id="listingsGrid">
+                <!-- يتم ملؤها ديناميكياً -->
+            </div>
+
+            <div class="no-results" id="noResults" style="display:none;">
+                <i class="fas fa-search"></i>
+                <h3>لم يتم العثور على عقارات</h3>
+                <p>جرب تعديل خيارات البحث أو الفلترة</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- نموذج إضافة عقار -->
+    <section class="add-property" id="add-property">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-badge">لوحة التحكم</span>
+                <h2 class="section-title">أضف <span class="gold-text">عقارك</span> مجاناً</h2>
+                <p class="section-description">
+                    انشر عقارك على منصتنا واصل إلى آلاف العملاء المهتمين في دقائق
+                </p>
+            </div>
+
+            <form class="property-form" id="addPropertyForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label><i class="fas fa-heading"></i> عنوان العقار *</label>
+                        <input type="text" name="title" required placeholder="مثال: فيلا فاخرة في حي الياسمين أو المزاحمية">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-building"></i> نوع العقار *</label>
+                        <select name="type" required>
+                            <option value="">اختر النوع</option>
+                            <option value="villa">فيلا</option>
+                            <option value="apartment">شقة</option>
+                            <option value="shop">معرض تجاري</option>
+                            <option value="land">أرض</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-tag"></i> الغرض *</label>
+                        <select name="purpose" required>
+                            <option value="">اختر الغرض</option>
+                            <option value="sale">للبيع</option>
+                            <option value="rent">للإيجار</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-money-bill-wave"></i> السعر (ر.س) *</label>
+                        <input type="number" name="price" required min="0" placeholder="0">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-ruler-combined"></i> المساحة (م²) *</label>
+                        <input type="number" name="area" required min="0" placeholder="0">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-city"></i> المدينة *</label>
+                        <select name="city" required>
+                            <option value="">اختر المدينة</option>
+                            <option value="riyadh">الرياض</option>
+                            <option value="muzahmiya">المزاحمية</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-map-pin"></i> الحي *</label>
+                        <input type="text" name="district" required placeholder="مثال: حي الياسمين أو حي غرناطة">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-bed"></i> عدد الغرف</label>
+                        <input type="number" name="rooms" min="0" placeholder="0">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-bath"></i> عدد دورات المياه</label>
+                        <input type="number" name="bathrooms" min="0" placeholder="0">
+                    </div>
+                    <div class="form-group full-width">
+                        <label><i class="fas fa-image"></i> رابط الصورة الرئيسية (اختياري)</label>
+                        <input type="url" name="image" placeholder="اتركه فارغاً لاستخدام صورة افتراضية">
+                    </div>
+                    <div class="form-group full-width">
+                        <label><i class="fas fa-images"></i> روابط صور إضافية (افصل بفاصلة)</label>
+                        <input type="text" name="gallery" placeholder="https://..., https://...">
+                    </div>
+                    <div class="form-group full-width">
+                        <label><i class="fas fa-align-right"></i> وصف العقار *</label>
+                        <textarea name="description" required rows="5" placeholder="اكتب وصفاً تفصيلياً للعقار..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-phone"></i> رقم التواصل *</label>
+                        <input type="tel" name="phone" required placeholder="+966 5X XXX XXXX">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-user"></i> اسم المالك / الوكيل</label>
+                        <input type="text" name="owner" placeholder="الاسم">
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="reset" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> مسح البيانات
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-plus-circle"></i> نشر العقار
+                    </button>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <!-- قسم اطلب عقارك -->
+    <section class="request-section" id="request">
+        <div class="container">
+            <div class="request-wrapper">
+                <div class="request-info">
+                    <span class="section-badge light">اطلب عقارك</span>
+                    <h2 class="section-title white">لم تجد ما تبحث عنه؟</h2>
+                    <p class="section-description light">
+                        أرسل لنا تفاصيل العقار الذي تبحث عنه وسنقوم بالبحث لك في السوق ونقدم لك أفضل الخيارات
+                    </p>
+                    <div class="request-features">
+                        <div class="request-feature">
+                            <i class="fas fa-check-circle"></i>
+                            <span>بحث مخصص لاحتياجاتك</span>
+                        </div>
+                        <div class="request-feature">
+                            <i class="fas fa-check-circle"></i>
+                            <span>خيارات حصرية غير منشورة</span>
+                        </div>
+                        <div class="request-feature">
+                            <i class="fas fa-check-circle"></i>
+                            <span>استشارة عقارية مجانية</span>
+                        </div>
+                        <div class="request-feature">
+                            <i class="fas fa-check-circle"></i>
+                            <span>متابعة شخصية من البداية للنهاية</span>
+                        </div>
+                    </div>
+                    <div class="contact-cards">
+                        <a href="tel:+966595305559" class="contact-card">
+                            <i class="fas fa-phone"></i>
+                            <div>
+                                <strong>اتصل بنا</strong>
+                                <span>0595305559</span>
+                            </div>
+                        </a>
+                        <a href="https://wa.me/966595305559" target="_blank" class="contact-card">
+                            <i class="fab fa-whatsapp"></i>
+                            <div>
+                                <strong>واتساب</strong>
+                                <span>0509503345</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <form class="request-form" id="requestForm">
+                    <h3>أرسل طلبك الآن</h3>
+                    <div class="form-group">
+                        <label>الاسم الكامل *</label>
+                        <input type="text" name="name" required placeholder="اكتب اسمك">
+                    </div>
+                    <div class="form-group">
+                        <label>رقم الجوال *</label>
+                        <input type="tel" name="phone" required placeholder="+966 5X XXX XXXX">
+                    </div>
+                    <div class="form-group">
+                        <label>البريد الإلكتروني</label>
+                        <input type="email" name="email" placeholder="example@email.com">
+                    </div>
+                    <div class="form-group">
+                        <label>نوع العقار المطلوب *</label>
+                        <select name="type" required>
+                            <option value="">اختر النوع</option>
+                            <option value="villa">فيلا</option>
+                            <option value="apartment">شقة</option>
+                            <option value="shop">معرض تجاري</option>
+                            <option value="land">أرض</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>الغرض *</label>
+                        <select name="purpose" required>
+                            <option value="">اختر</option>
+                            <option value="sale">شراء</option>
+                            <option value="rent">إيجار</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>المدينة / الحي المفضل</label>
+                        <input type="text" name="location" placeholder="مثال: الرياض - حي الياسمين أو المزاحمية - حي غرناطة">
+                    </div>
+                    <div class="form-group">
+                        <label>الميزانية المتوقعة (ر.س)</label>
+                        <input type="number" name="budget" min="0" placeholder="0">
+                    </div>
+                    <div class="form-group full-width">
+                        <label>تفاصيل الطلب *</label>
+                        <textarea name="details" required rows="4" placeholder="اكتب تفاصيل العقار الذي تبحث عنه..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">
+                        <i class="fas fa-paper-plane"></i> إرسال الطلب
+                    </button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- قسم تواصل معنا -->
+    <section class="contact" id="contact">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-badge">تواصل معنا</span>
+                <h2 class="section-title">نحن هنا <span class="gold-text">لمساعدتك</span></h2>
+                <p class="section-description">فريقنا جاهز للرد على استفساراتك في أي وقت</p>
+            </div>
+            <div class="contact-grid">
+                <div class="contact-item">
+                    <div class="contact-icon">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <h4>المقر الرئيسي</h4>
+                    <p>مدينة المزاحمية<br>حي غرناطة - طريق الملك فيصل</p>
+                </div>
+                <div class="contact-item">
+                    <div class="contact-icon">
+                        <i class="fas fa-phone"></i>
+                    </div>
+                    <h4>اتصل بنا</h4>
+                    <p>0595305559<br>0509503345</p>
+                </div>
+                <div class="contact-item">
+                    <div class="contact-icon">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <h4>البريد الإلكتروني</h4>
+                    <p>info@adwaaalfaisaliah.sa<br>sales@adwaaalfaisaliah.sa</p>
+                </div>
+                <div class="contact-item">
+                    <div class="contact-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <h4>ساعات العمل</h4>
+                    <p>السبت - الخميس<br>9:00 ص - 9:00 م</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- الفوتر -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <div class="footer-logo">
+                        <i class="fas fa-gem"></i>
+                        <span>أضواء الفيصلية</span>
+                    </div>
+                    <p>مكتب عقاري رائد في المملكة العربية السعودية، نقدم خدمات متكاملة في بيع وإيجار العقارات منذ عام 2010.</p>
+                    <div class="social-links">
+                        <a href="#" aria-label="تويتر"><i class="fab fa-twitter"></i></a>
+                        <a href="#" aria-label="انستجرام"><i class="fab fa-instagram"></i></a>
+                        <a href="#" aria-label="فيسبوك"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" aria-label="سناب شات"><i class="fab fa-snapchat-ghost"></i></a>
+                        <a href="https://wa.me/966595305559" aria-label="واتساب"><i class="fab fa-whatsapp"></i></a>
+                    </div>
+                </div>
+                <div class="footer-col">
+                    <h4>روابط سريعة</h4>
+                    <ul>
+                        <li><a href="#home">الرئيسية</a></li>
+                        <li><a href="#listings">العقارات</a></li>
+                        <li><a href="#add-property">أضف عقارك</a></li>
+                        <li><a href="#request">اطلب عقارك</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>خدماتنا</h4>
+                    <ul>
+                        <li><a href="#">بيع العقارات</a></li>
+                        <li><a href="#">تأجير العقارات</a></li>
+                        <li><a href="#">استشارات عقارية</a></li>
+                        <li><a href="#">تقييم العقارات</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>النشرة البريدية</h4>
+                    <p>اشترك ليصلك كل جديد في عالم العقارات</p>
+                    <form class="newsletter" id="newsletterForm">
+                        <input type="email" placeholder="بريدك الإلكتروني" required>
+                        <button type="submit"><i class="fas fa-paper-plane"></i></button>
+                    </form>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>© 2026 مكتب أضواء الفيصلية للخدمات العقارية. جميع الحقوق محفوظة.</p>
+                <p>صُنع بكل احترافية في المملكة العربية السعودية</p>
+                <p style="margin-top: 8px;"><a href="admin.html" style="color: rgba(255,255,255,0.3); font-size: 0.8rem;">لوحة التحكم</a></p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- نافذة تفاصيل العقار -->
+    <div class="modal" id="propertyModal">
+        <div class="modal-content">
+            <button class="modal-close" id="modalClose" aria-label="إغلاق">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="modal-body" id="modalBody">
+                <!-- يتم ملؤها ديناميكياً -->
+            </div>
+        </div>
+    </div>
+
+    <!-- زر الواتساب العائم -->
+    <a href="https://wa.me/966595305559" target="_blank" class="whatsapp-float" aria-label="تواصل عبر واتساب">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
+    <!-- زر العودة للأعلى -->
+    <button class="scroll-top" id="scrollTop" aria-label="العودة للأعلى">
+        <i class="fas fa-chevron-up"></i>
+    </button>
+
+    <!-- إشعارات -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="js/data.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
