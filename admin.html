@@ -315,12 +315,43 @@
                             <input type="tel" name="phone" required placeholder="+966 5X XXX XXXX">
                         </div>
                         <div class="form-group full-width">
-                            <label>رابط الصورة الرئيسية (اختياري)</label>
-                            <input type="url" name="image" placeholder="اتركه فارغاً لاستخدام صورة افتراضية">
+                            <label>الصورة الرئيسية (اختياري)</label>
+                            <div class="file-upload-wrapper" id="adminMainImageUpload">
+                                <input type="file" accept="image/jpeg,image/jpg,image/png,image/webp" id="adminMainImageInput" class="file-input">
+                                <div class="file-upload-area">
+                                    <div class="file-upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+                                    <div class="file-upload-text">
+                                        <strong>اضغط لاختيار صورة</strong>
+                                        <span>أو اسحب الصورة هنا</span>
+                                    </div>
+                                    <div class="file-upload-hint">JPG, PNG, WebP - حتى 5 ميجابايت</div>
+                                </div>
+                                <div class="file-preview" style="display:none;">
+                                    <img src="" alt="معاينة">
+                                    <div class="file-preview-info">
+                                        <div class="file-preview-name"></div>
+                                        <div class="file-preview-meta"></div>
+                                    </div>
+                                    <button type="button" class="file-remove-btn"><i class="fas fa-trash"></i></button>
+                                </div>
+                                <input type="hidden" name="imageData">
+                            </div>
                         </div>
                         <div class="form-group full-width">
-                            <label>روابط صور إضافية (مفصولة بفاصلة)</label>
-                            <input type="text" name="gallery">
+                            <label>صور إضافية (اختياري)</label>
+                            <div class="file-upload-wrapper" id="adminGalleryImageUpload">
+                                <input type="file" accept="image/jpeg,image/jpg,image/png,image/webp" id="adminGalleryImageInput" class="file-input" multiple>
+                                <div class="file-upload-area">
+                                    <div class="file-upload-icon"><i class="fas fa-images"></i></div>
+                                    <div class="file-upload-text">
+                                        <strong>اختر صوراً إضافية</strong>
+                                        <span>يمكنك اختيار عدة صور</span>
+                                    </div>
+                                    <div class="file-upload-hint">JPG, PNG, WebP - حتى 5 ميجابايت لكل صورة</div>
+                                </div>
+                                <div class="gallery-preview"></div>
+                                <input type="hidden" name="galleryData">
+                            </div>
                         </div>
                         <div class="form-group full-width">
                             <label>الوصف *</label>
@@ -479,8 +510,27 @@
                         </select>
                     </div>
                     <div class="form-group full-width">
-                        <label>رابط الصورة (اختياري)</label>
-                        <input type="url" name="image" placeholder="اتركه فارغاً لاستخدام صورة افتراضية">
+                        <label>الصورة الرئيسية (اختياري)</label>
+                        <div class="file-upload-wrapper" id="editMainImageUpload">
+                            <input type="file" accept="image/jpeg,image/jpg,image/png,image/webp" id="editMainImageInput" class="file-input">
+                            <div class="file-upload-area">
+                                <div class="file-upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+                                <div class="file-upload-text">
+                                    <strong>اضغط لتغيير الصورة</strong>
+                                    <span>أو اسحب صورة جديدة هنا</span>
+                                </div>
+                                <div class="file-upload-hint">JPG, PNG, WebP - حتى 5 ميجابايت</div>
+                            </div>
+                            <div class="file-preview" style="display:none;">
+                                <img src="" alt="معاينة">
+                                <div class="file-preview-info">
+                                    <div class="file-preview-name"></div>
+                                    <div class="file-preview-meta"></div>
+                                </div>
+                                <button type="button" class="file-remove-btn"><i class="fas fa-trash"></i></button>
+                            </div>
+                            <input type="hidden" name="imageData">
+                        </div>
                     </div>
                     <div class="form-group full-width">
                         <label>الوصف *</label>

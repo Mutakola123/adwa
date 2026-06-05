@@ -477,12 +477,45 @@
                         <input type="number" name="bathrooms" min="0" placeholder="0">
                     </div>
                     <div class="form-group full-width">
-                        <label><i class="fas fa-image"></i> رابط الصورة الرئيسية (اختياري)</label>
-                        <input type="url" name="image" placeholder="اتركه فارغاً لاستخدام صورة افتراضية">
+                        <label><i class="fas fa-image"></i> الصورة الرئيسية (اختياري)</label>
+                        <div class="file-upload-wrapper" id="mainImageUpload">
+                            <input type="file" name="image" accept="image/jpeg,image/jpg,image/png,image/webp" id="mainImageInput" class="file-input">
+                            <div class="file-upload-area" id="mainImageDropArea">
+                                <div class="file-upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+                                <div class="file-upload-text">
+                                    <strong>اضغط لاختيار صورة</strong>
+                                    <span>أو اسحب الصورة هنا</span>
+                                </div>
+                                <div class="file-upload-hint">JPG, PNG, WebP - حتى 5 ميجابايت</div>
+                            </div>
+                            <div class="file-preview" id="mainImagePreview" style="display:none;">
+                                <img id="mainImagePreviewImg" src="" alt="معاينة">
+                                <div class="file-preview-info">
+                                    <div class="file-preview-name" id="mainImageFileName"></div>
+                                    <div class="file-preview-meta" id="mainImageFileMeta"></div>
+                                </div>
+                                <button type="button" class="file-remove-btn" id="mainImageRemove">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                            <input type="hidden" name="imageData" id="mainImageData">
+                        </div>
                     </div>
                     <div class="form-group full-width">
-                        <label><i class="fas fa-images"></i> روابط صور إضافية (افصل بفاصلة)</label>
-                        <input type="text" name="gallery" placeholder="https://..., https://...">
+                        <label><i class="fas fa-images"></i> صور إضافية (اختياري)</label>
+                        <div class="file-upload-wrapper" id="galleryImageUpload">
+                            <input type="file" name="gallery" accept="image/jpeg,image/jpg,image/png,image/webp" id="galleryImageInput" class="file-input" multiple>
+                            <div class="file-upload-area" id="galleryImageDropArea">
+                                <div class="file-upload-icon"><i class="fas fa-images"></i></div>
+                                <div class="file-upload-text">
+                                    <strong>اختر صوراً إضافية</strong>
+                                    <span>يمكنك اختيار عدة صور معاً</span>
+                                </div>
+                                <div class="file-upload-hint">JPG, PNG, WebP - حتى 5 ميجابايت لكل صورة</div>
+                            </div>
+                            <div class="gallery-preview" id="galleryPreview"></div>
+                            <input type="hidden" name="galleryData" id="galleryImageData">
+                        </div>
                     </div>
                     <div class="form-group full-width">
                         <label><i class="fas fa-align-right"></i> وصف العقار *</label>

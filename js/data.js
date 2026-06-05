@@ -784,9 +784,125 @@ function formatNumber(num) {
 const DEFAULT_IMAGE = 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800';
 const DEFAULT_GALLERY_IMAGE = 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=1200';
 
+// إعدادات معالجة الصور المرفوعة
+const IMAGE_CONFIG = {
+    MAX_FILE_SIZE: 5 * 1024 * 1024,    // 5 ميجابايت كحد أقصى
+    MAX_WIDTH: 1200,                    // أقصى عرض للضغط
+    MAX_HEIGHT: 1200,                   // أقصى ارتفاع للضغط
+    JPEG_QUALITY: 0.85,                 // جودة الضغط (0-1)
+    ALLOWED_TYPES: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
+};
+
 // الحصول على الصورة (أو الصورة الافتراضية إذا كانت فارغة)
 function getPropertyImage(image) {
     return (image && image.trim()) ? image : DEFAULT_IMAGE;
+}
+
+// التحقق من صحة ملف الصورة
+function validateImageFile(file) {
+    if (!file) return { valid: false, error: 'لم يتم اختيار ملف' };
+    if (!IMAGE_CONFIG.ALLOWED_TYPES.includes(file.type)) {
+        return { valid: false, error: 'نوع الملف غير مدعوم. استخدم JPG أو PNG أو WebP' };
+    }
+    if (file.size > IMAGE_CONFIG.MAX_FILE_SIZE) {
+        const sizeMB = (file.size / 1024 / 1024).toFixed(1);
+        return { valid: false, error: `حجم الملف كبير (${sizeMB} ميجابايت). الحد الأقصى 5 ميجابايت` };
+    }
+    return { valid: true };
+}
+
+// تحويل ملف الصورة إلى base64
+function readFileAsDataURL(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target.result);
+        reader.onerror = () => reject(new Error('فشل في قراءة الملف'));
+        reader.readAsDataURL(file);
+    });
+}
+
+// تحميل صورة من data URL
+function loadImage(dataUrl) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = () => reject(new Error('فشل في تحميل الصورة'));
+        img.src = dataUrl;
+    });
+}
+
+// ضغط الصورة باستخدام Canvas
+async function compressImage(file) {
+    try {
+        // التحقق من صحة الملف
+        const validation = validateImageFile(file);
+        if (!validation.valid) {
+            throw new Error(validation.error);
+        }
+
+        // تحويل إلى base64
+        const dataUrl = await readFileAsDataURL(file);
+
+        // تحميل الصورة
+        const img = await loadImage(dataUrl);
+
+        // حساب الأبعاد الجديدة مع الحفاظ على النسبة
+        let width = img.width;
+        let height = img.height;
+
+        if (width > IMAGE_CONFIG.MAX_WIDTH || height > IMAGE_CONFIG.MAX_HEIGHT) {
+            const ratio = Math.min(
+                IMAGE_CONFIG.MAX_WIDTH / width,
+                IMAGE_CONFIG.MAX_HEIGHT / height
+            );
+            width = Math.round(width * ratio);
+            height = Math.round(height * ratio);
+        }
+
+        // رسم الصورة على Canvas بالأبعاد الجديدة
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+
+        // خلفية بيضاء للصور الشفافة (PNG → JPEG)
+        if (file.type === 'image/png' || file.type === 'image/webp') {
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, width, height);
+        }
+
+        ctx.drawImage(img, 0, 0, width, height);
+
+        // تحويل Canvas إلى JPEG مضغوط
+        const compressedDataUrl = canvas.toDataURL('image/jpeg', IMAGE_CONFIG.JPEG_QUALITY);
+
+        // حساب نسبة الضغط
+        const originalSize = dataUrl.length;
+        const compressedSize = compressedDataUrl.length;
+        const ratio = Math.round((1 - compressedSize / originalSize) * 100);
+
+        return {
+            success: true,
+            dataUrl: compressedDataUrl,
+            originalSize: file.size,
+            compressedSize: compressedSize,
+            width: width,
+            height: height,
+            compressionRatio: ratio
+        };
+    } catch (err) {
+        return {
+            success: false,
+            error: err.message
+        };
+    }
+}
+
+// تنسيق حجم الملف للعرض
+function formatFileSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / 1024 / 1024).toFixed(2) + ' MB';
 }
 
 // تنسيق السعر

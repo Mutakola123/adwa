@@ -280,6 +280,13 @@ function setupAdminListeners() {
     if (newPasswordInput) {
         newPasswordInput.addEventListener('input', updatePasswordStrength);
     }
+
+    // رفع الصور في نماذج لوحة التحكم
+    if (typeof setupSingleFileUpload === 'function') {
+        setupSingleFileUpload('adminMainImageInput', null, 'adminMainImageUpload');
+        setupSingleFileUpload('editMainImageInput', null, 'editMainImageUpload');
+        setupGalleryFileUpload('adminGalleryImageInput', null, 'adminGalleryImageUpload');
+    }
 }
 
 // تقييم قوة كلمة المرور
@@ -790,7 +797,8 @@ function closeEditModal() {
 
 function handleEditSubmit(e) {
     e.preventDefault();
-    const formData = new FormData(e.target);
+    const form = e.target;
+    const formData = new FormData(form);
     const id = formData.get('id');
 
     if (!id) {
@@ -809,6 +817,11 @@ function handleEditSubmit(e) {
         return;
     }
 
+    // الحصول على الصورة الجديدة إن وُجدت
+    const imageData = form.querySelector('[name="imageData"]').value;
+    const existingProperty = getPropertyById(id);
+    const finalImage = imageData || (existingProperty ? existingProperty.image : DEFAULT_IMAGE);
+
     const updates = {
         title: title,
         type: formData.get('type'),
@@ -821,7 +834,7 @@ function handleEditSubmit(e) {
         rooms: parseInt(formData.get('rooms')) || 0,
         bathrooms: parseInt(formData.get('bathrooms')) || 0,
         phone: phone,
-        image: getPropertyImage(formData.get('image')),
+        image: getPropertyImage(finalImage),
         description: formData.get('description'),
         status: formData.get('status'),
         priceUnit: formData.get('purpose') === 'rent' ? 'شهرياً' : ''
@@ -863,7 +876,8 @@ window.confirmDeleteProperty = function(id) {
 // ============================================
 function handleAdminAdd(e) {
     e.preventDefault();
-    const formData = new FormData(e.target);
+    const form = e.target;
+    const formData = new FormData(form);
 
     // التحقق من الحقول المطلوبة
     const title = formData.get('title');
@@ -881,9 +895,20 @@ function handleAdminAdd(e) {
         return;
     }
 
-    const gallery = formData.get('gallery')
-        ? formData.get('gallery').split(',').map(s => s.trim()).filter(s => s)
-        : [];
+    // الحصول على الصورة الرئيسية من الحقل المخفي
+    const imageData = form.querySelector('[name="imageData"]').value;
+    const image = imageData || DEFAULT_IMAGE;
+
+    // الحصول على صور المعرض
+    const galleryData = form.querySelector('[name="galleryData"]').value;
+    let gallery = [];
+    if (galleryData) {
+        try {
+            gallery = JSON.parse(galleryData);
+        } catch (e) {
+            gallery = [];
+        }
+    }
 
     const newProperty = {
         title: title,
@@ -896,8 +921,8 @@ function handleAdminAdd(e) {
         district: district,
         rooms: parseInt(formData.get('rooms')) || 0,
         bathrooms: parseInt(formData.get('bathrooms')) || 0,
-        image: getPropertyImage(formData.get('image')),
-        gallery: gallery.length > 0 ? gallery : [DEFAULT_IMAGE],
+        image: getPropertyImage(image),
+        gallery: gallery.length > 0 ? gallery : [image || DEFAULT_IMAGE],
         description: description,
         phone: phone,
         owner: 'مكتب أضواء الفيصلية',
@@ -908,6 +933,10 @@ function handleAdminAdd(e) {
     addApprovedProperty(newProperty);
     showToast('تمت الإضافة', 'تم نشر العقار بنجاح', 'success');
     e.target.reset();
+    if (typeof resetImageUploads === 'function') {
+        resetImageUploads('adminMainImageUpload');
+        resetImageUploads('adminGalleryImageUpload');
+    }
     refreshAll();
     switchView('properties');
 }

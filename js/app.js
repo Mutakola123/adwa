@@ -29,6 +29,7 @@ function initializeApp() {
     setupSearch();
     setupFilters();
     setupForms();
+    setupFileUploads();
     setupModal();
     setupScrollEffects();
     setupAnimations();
@@ -582,7 +583,8 @@ function setupForms() {
 
 function handleAddProperty(e) {
     e.preventDefault();
-    const formData = new FormData(e.target);
+    const form = e.target;
+    const formData = new FormData(form);
 
     // التحقق من الحقول المطلوبة
     const title = formData.get('title');
@@ -600,9 +602,20 @@ function handleAddProperty(e) {
         return;
     }
 
-    const gallery = formData.get('gallery')
-        ? formData.get('gallery').split(',').map(s => s.trim()).filter(s => s)
-        : [];
+    // الحصول على الصورة الرئيسية من الحقل المخفي
+    const imageData = form.querySelector('#mainImageData').value;
+    const image = imageData || DEFAULT_IMAGE;
+
+    // الحصول على صور المعرض من الحقل المخفي
+    const galleryData = form.querySelector('#galleryImageData').value;
+    let gallery = [];
+    if (galleryData) {
+        try {
+            gallery = JSON.parse(galleryData);
+        } catch (e) {
+            gallery = [];
+        }
+    }
 
     const newProperty = {
         title: title,
@@ -615,8 +628,8 @@ function handleAddProperty(e) {
         district: district,
         rooms: parseInt(formData.get('rooms')) || 0,
         bathrooms: parseInt(formData.get('bathrooms')) || 0,
-        image: getPropertyImage(formData.get('image')),
-        gallery: gallery.length > 0 ? gallery : [DEFAULT_IMAGE],
+        image: getPropertyImage(image),
+        gallery: gallery.length > 0 ? gallery : [image || DEFAULT_IMAGE],
         description: description,
         phone: phone,
         owner: formData.get('owner') || 'مستخدم',
@@ -627,6 +640,9 @@ function handleAddProperty(e) {
 
     showToast('تم استلام طلبك', 'سيتم مراجعة العقار من قبل الإدارة ونشره قريباً', 'success');
     e.target.reset();
+    // إعادة تعيين معاينات الصور
+    resetImageUploads('mainImageUpload');
+    resetImageUploads('galleryImageUpload');
 
     setTimeout(() => {
         document.getElementById('listings').scrollIntoView({ behavior: 'smooth' });
@@ -657,6 +673,190 @@ function handleRequestProperty(e) {
 
     showToast('تم إرسال طلبك', 'سنتواصل معك في أقرب وقت ممكن', 'success');
     e.target.reset();
+}
+
+// ============================================
+// رفع الملفات (الصور)
+// ============================================
+function setupFileUploads() {
+    // الصورة الرئيسية في نموذج إضافة عقار
+    setupSingleFileUpload('mainImageInput', 'mainImageData', 'mainImageUpload');
+
+    // صور المعرض في نموذج إضافة عقار
+    setupGalleryFileUpload('galleryImageInput', 'galleryImageData', 'galleryImageUpload');
+}
+
+// رفع صورة واحدة
+function setupSingleFileUpload(inputId, hiddenId, wrapperId) {
+    const input = document.getElementById(inputId);
+    const wrapper = document.getElementById(wrapperId);
+    if (!input || !wrapper) return;
+
+    // البحث عن الحقل المخفي - إما بـ ID أو داخل الـwrapper
+    const hidden = hiddenId ? document.getElementById(hiddenId) : wrapper.querySelector('input[type="hidden"]');
+    if (!hidden) return;
+
+    const dropArea = wrapper.querySelector('.file-upload-area');
+    const preview = wrapper.querySelector('.file-preview');
+    const previewImg = preview.querySelector('img');
+    const fileName = preview.querySelector('.file-preview-name');
+    const fileMeta = preview.querySelector('.file-preview-meta');
+    const removeBtn = preview.querySelector('.file-remove-btn');
+
+    // النقر على منطقة الرفع
+    dropArea.addEventListener('click', () => input.click());
+
+    // Drag and drop
+    ['dragenter', 'dragover'].forEach(evt => {
+        dropArea.addEventListener(evt, (e) => {
+            e.preventDefault();
+            dropArea.classList.add('dragging');
+        });
+    });
+    ['dragleave', 'drop'].forEach(evt => {
+        dropArea.addEventListener(evt, (e) => {
+            e.preventDefault();
+            dropArea.classList.remove('dragging');
+        });
+    });
+    dropArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            input.files = files;
+            input.dispatchEvent(new Event('change'));
+        }
+    });
+
+    // معالجة اختيار الملف
+    input.addEventListener('change', async () => {
+        const file = input.files[0];
+        if (!file) return;
+
+        // إظهار loading
+        dropArea.classList.add('loading');
+
+        const result = await compressImage(file);
+        dropArea.classList.remove('loading');
+
+        if (!result.success) {
+            showToast('خطأ في الصورة', result.error, 'error');
+            input.value = '';
+            return;
+        }
+
+        // عرض المعاينة
+        previewImg.src = result.dataUrl;
+        fileName.textContent = file.name;
+        fileMeta.textContent = `${result.width}×${result.height} • ${formatFileSize(file.size)} • ${result.compressionRatio > 0 ? 'تم تقليل الحجم ' + result.compressionRatio + '%' : ''}`;
+        dropArea.style.display = 'none';
+        preview.style.display = 'flex';
+
+        // حفظ البيانات في الحقل المخفي
+        hidden.value = result.dataUrl;
+    });
+
+    // زر الحذف
+    removeBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        resetImageUploads(wrapperId);
+    });
+}
+
+// رفع عدة صور (المعرض)
+function setupGalleryFileUpload(inputId, hiddenId, wrapperId) {
+    const input = document.getElementById(inputId);
+    const wrapper = document.getElementById(wrapperId);
+    if (!input || !wrapper) return;
+
+    // البحث عن الحقل المخفي - إما بـ ID أو داخل الـwrapper
+    const hidden = hiddenId ? document.getElementById(hiddenId) : wrapper.querySelector('input[type="hidden"]');
+    if (!hidden) return;
+
+    const dropArea = wrapper.querySelector('.file-upload-area');
+    const previewContainer = wrapper.querySelector('.gallery-preview');
+    let galleryData = [];
+
+    dropArea.addEventListener('click', () => input.click());
+
+    // Drag and drop
+    ['dragenter', 'dragover'].forEach(evt => {
+        dropArea.addEventListener(evt, (e) => {
+            e.preventDefault();
+            dropArea.classList.add('dragging');
+        });
+    });
+    ['dragleave', 'drop'].forEach(evt => {
+        dropArea.addEventListener(evt, (e) => {
+            e.preventDefault();
+            dropArea.classList.remove('dragging');
+        });
+    });
+    dropArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            handleFiles(files);
+        }
+    });
+
+    input.addEventListener('change', async () => {
+        if (input.files.length > 0) {
+            await handleFiles(input.files);
+        }
+    });
+
+    async function handleFiles(files) {
+        dropArea.classList.add('loading');
+        for (const file of files) {
+            const result = await compressImage(file);
+            if (result.success) {
+                galleryData.push(result.dataUrl);
+                addGalleryThumb(result.dataUrl, galleryData.length - 1);
+            } else {
+                showToast('خطأ', `${file.name}: ${result.error}`, 'error');
+            }
+        }
+        dropArea.classList.remove('loading');
+        hidden.value = JSON.stringify(galleryData);
+        input.value = '';
+    }
+
+    function addGalleryThumb(dataUrl, index) {
+        const thumb = document.createElement('div');
+        thumb.className = 'gallery-thumb';
+        thumb.innerHTML = `
+            <img src="${dataUrl}" alt="صورة ${index + 1}">
+            <button type="button" class="gallery-thumb-remove" data-index="${index}"><i class="fas fa-times"></i></button>
+        `;
+        previewContainer.appendChild(thumb);
+        thumb.querySelector('.gallery-thumb-remove').addEventListener('click', () => {
+            galleryData.splice(index, 1);
+            thumb.remove();
+            // إعادة تحديث الفهارس
+            previewContainer.querySelectorAll('.gallery-thumb').forEach((t, i) => {
+                t.querySelector('.gallery-thumb-remove').dataset.index = i;
+            });
+            hidden.value = JSON.stringify(galleryData);
+        });
+    }
+}
+
+// إعادة تعيين منطقة رفع
+function resetImageUploads(wrapperId) {
+    const wrapper = document.getElementById(wrapperId);
+    if (!wrapper) return;
+    const input = wrapper.querySelector('.file-input');
+    const dropArea = wrapper.querySelector('.file-upload-area');
+    const preview = wrapper.querySelector('.file-preview');
+    const galleryPreview = wrapper.querySelector('.gallery-preview');
+    const hidden = wrapper.querySelector('input[type="hidden"]');
+
+    if (input) input.value = '';
+    if (dropArea) dropArea.style.display = '';
+    if (preview) preview.style.display = 'none';
+    if (galleryPreview) galleryPreview.innerHTML = '';
+    if (hidden) hidden.value = '';
 }
 
 // ============================================
