@@ -225,6 +225,17 @@ input, select, textarea {
     flex-shrink: 0;
 }
 
+.logo-image {
+    height: 60px;
+    width: auto;
+    display: block;
+    transition: transform 0.3s;
+}
+
+.logo:hover .logo-image {
+    transform: scale(1.04);
+}
+
 .logo-icon {
     width: 48px;
     height: 48px;
@@ -1564,6 +1575,15 @@ input, select, textarea {
     font-size: 1.8rem;
 }
 
+.footer-logo-image {
+    height: 65px;
+    width: auto;
+    display: block;
+    /* عكس الألوان لأن خلفية الفوتر كحلية */
+    filter: brightness(0) invert(1);
+    opacity: 0.95;
+}
+
 .footer-col p {
     color: rgba(255, 255, 255, 0.7);
     line-height: 1.8;
@@ -2239,6 +2259,14 @@ input, select, textarea {
 @media (max-width: 768px) {
     .container {
         padding: 0 16px;
+    }
+
+    .logo-image {
+        height: 50px;
+    }
+
+    .footer-logo-image {
+        height: 55px;
     }
 
     .nav-menu {

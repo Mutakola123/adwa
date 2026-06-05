@@ -83,6 +83,14 @@
     box-shadow: var(--shadow-xl);
 }
 
+.login-logo-image {
+    width: 220px;
+    max-width: 90%;
+    height: auto;
+    margin: 0 auto 16px;
+    display: block;
+}
+
 .login-header h1 {
     color: var(--navy-800);
     font-size: 1.8rem;
@@ -332,6 +340,13 @@
     font-size: 1.3rem;
     box-shadow: var(--shadow-md);
     flex-shrink: 0;
+}
+
+.sidebar-logo-image {
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+    display: block;
 }
 
 .sidebar-header h2 {

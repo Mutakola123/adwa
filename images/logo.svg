@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 200" width="400" height="200">
+  <defs>
+    <linearGradient id="buildingGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1d4ed8"/>
+      <stop offset="100%" stop-color="#1e3a8a"/>
+    </linearGradient>
+  </defs>
+
+  <!-- أيقونة المباني -->
+  <g transform="translate(140, 20)">
+    <!-- المبنى الأيسر (أطول) -->
+    <rect x="0" y="20" width="40" height="80" fill="none" stroke="url(#buildingGrad)" stroke-width="6" stroke-linejoin="round"/>
+    <!-- المبنى الأيمن (أقصر) -->
+    <rect x="40" y="40" width="40" height="60" fill="none" stroke="url(#buildingGrad)" stroke-width="6" stroke-linejoin="round"/>
+    <!-- نوافذ المبنى الأيسر -->
+    <rect x="8" y="35" width="10" height="10" fill="url(#buildingGrad)"/>
+    <rect x="22" y="35" width="10" height="10" fill="url(#buildingGrad)"/>
+    <rect x="8" y="55" width="10" height="10" fill="url(#buildingGrad)"/>
+    <rect x="22" y="55" width="10" height="10" fill="url(#buildingGrad)"/>
+    <rect x="8" y="75" width="10" height="10" fill="url(#buildingGrad)"/>
+    <rect x="22" y="75" width="10" height="10" fill="url(#buildingGrad)"/>
+    <!-- نوافذ المبنى الأيمن -->
+    <rect x="48" y="55" width="10" height="10" fill="url(#buildingGrad)"/>
+    <rect x="62" y="55" width="10" height="10" fill="url(#buildingGrad)"/>
+    <rect x="48" y="75" width="10" height="10" fill="url(#buildingGrad)"/>
+    <rect x="62" y="75" width="10" height="10" fill="url(#buildingGrad)"/>
+  </g>
+
+  <!-- النص العربي -->
+  <text x="200" y="135" text-anchor="middle"
+        font-family="Cairo, Tajawal, 'Segoe UI', sans-serif"
+        font-size="38" font-weight="900" fill="#1d4ed8">
+    مكتب أضواء الفيصلية
+  </text>
+
+  <!-- خط فاصل -->
+  <line x1="60" y1="150" x2="340" y2="150" stroke="#1d4ed8" stroke-width="1.5"/>
+
+  <!-- النص الإنجليزي -->
+  <text x="200" y="180" text-anchor="middle"
+        font-family="'Segoe UI', Arial, sans-serif"
+        font-size="20" font-weight="700" fill="#1d4ed8" letter-spacing="2">
+    ADWAA AL-FAISALEAH OFFICE
+  </text>
+</svg>
