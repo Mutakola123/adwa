@@ -793,6 +793,164 @@ const IMAGE_CONFIG = {
     ALLOWED_TYPES: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
 };
 
+// ============================================
+// التخزين السحابي (Cloudinary)
+// ============================================
+const CLOUDINARY_CONFIG_KEY = 'cloudinaryConfig';
+
+// الحصول على إعدادات Cloudinary
+function getCloudinaryConfig() {
+    const stored = localStorage.getItem(CLOUDINARY_CONFIG_KEY);
+    if (!stored) return null;
+    try {
+        return JSON.parse(stored);
+    } catch (e) {
+        return null;
+    }
+}
+
+// حفظ إعدادات Cloudinary
+function setCloudinaryConfig(config) {
+    if (!config || !config.cloudName || !config.uploadPreset) {
+        localStorage.removeItem(CLOUDINARY_CONFIG_KEY);
+        return false;
+    }
+    localStorage.setItem(CLOUDINARY_CONFIG_KEY, JSON.stringify(config));
+    return true;
+}
+
+// التحقق من تفعيل التخزين السحابي
+function isCloudStorageEnabled() {
+    const config = getCloudinaryConfig();
+    return !!(config && config.cloudName && config.uploadPreset);
+}
+
+// رفع صورة إلى Cloudinary
+async function uploadToCloudinary(file, onProgress) {
+    const config = getCloudinaryConfig();
+    if (!config) {
+        return { success: false, error: 'التخزين السحابي غير مفعّل' };
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', config.uploadPreset);
+
+    // إعدادات إضافية للتحسين التلقائي
+    if (config.folder) formData.append('folder', config.folder);
+
+    return new Promise((resolve) => {
+        const xhr = new XMLHttpRequest();
+
+        xhr.upload.addEventListener('progress', (e) => {
+            if (e.lengthComputable && onProgress) {
+                const percent = Math.round((e.loaded / e.total) * 100);
+                onProgress(percent);
+            }
+        });
+
+        xhr.addEventListener('load', () => {
+            if (xhr.status === 200) {
+                try {
+                    const response = JSON.parse(xhr.responseText);
+                    resolve({
+                        success: true,
+                        url: response.secure_url,
+                        publicId: response.public_id,
+                        width: response.width,
+                        height: response.height,
+                        bytes: response.bytes,
+                        format: response.format
+                    });
+                } catch (e) {
+                    resolve({ success: false, error: 'فشل في معالجة استجابة الخادم' });
+                }
+            } else {
+                try {
+                    const error = JSON.parse(xhr.responseText);
+                    resolve({
+                        success: false,
+                        error: error.error?.message || `فشل الرفع (${xhr.status})`
+                    });
+                } catch (e) {
+                    resolve({ success: false, error: `فشل الرفع (${xhr.status})` });
+                }
+            }
+        });
+
+        xhr.addEventListener('error', () => {
+            resolve({ success: false, error: 'فشل الاتصال بالخادم' });
+        });
+
+        xhr.addEventListener('abort', () => {
+            resolve({ success: false, error: 'تم إلغاء الرفع' });
+        });
+
+        const url = `https://api.cloudinary.com/v1_1/${config.cloudName}/image/upload`;
+        xhr.open('POST', url);
+        xhr.send(formData);
+    });
+}
+
+// معالجة الصورة - رفع سحابي أو محلي
+async function processImageUpload(file, onProgress) {
+    // التحقق من صحة الملف
+    const validation = validateImageFile(file);
+    if (!validation.valid) {
+        return { success: false, error: validation.error, storage: 'none' };
+    }
+
+    // إذا كان التخزين السحابي مفعّل
+    if (isCloudStorageEnabled()) {
+        if (onProgress) onProgress(0);
+
+        // ضغط الصورة أولاً
+        const compressed = await compressImage(file);
+        if (!compressed.success) {
+            return { success: false, error: compressed.error, storage: 'local' };
+        }
+
+        // تحويل data URL إلى Blob للرفع
+        const blob = await (await fetch(compressed.dataUrl)).blob();
+
+        // رفع إلى Cloudinary
+        const uploadResult = await uploadToCloudinary(blob, onProgress);
+        if (uploadResult.success) {
+            return {
+                success: true,
+                storage: 'cloud',
+                url: uploadResult.url,
+                publicId: uploadResult.publicId,
+                width: uploadResult.width,
+                height: uploadResult.height,
+                bytes: uploadResult.bytes,
+                originalSize: file.size
+            };
+        } else {
+            // fallback إلى التخزين المحلي عند فشل السحابة
+            return {
+                success: true,
+                storage: 'local',
+                dataUrl: compressed.dataUrl,
+                warning: 'فشل الرفع السحابي، تم الحفظ محلياً',
+                originalSize: file.size
+            };
+        }
+    } else {
+        // تخزين محلي فقط
+        const compressed = await compressImage(file);
+        if (!compressed.success) {
+            return { success: false, error: compressed.error, storage: 'none' };
+        }
+        return {
+            success: true,
+            storage: 'local',
+            dataUrl: compressed.dataUrl,
+            originalSize: file.size
+        };
+    }
+}
+
 // الحصول على الصورة (أو الصورة الافتراضية إذا كانت فارغة)
 function getPropertyImage(image) {
     return (image && image.trim()) ? image : DEFAULT_IMAGE;

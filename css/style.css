@@ -2877,6 +2877,57 @@ input, select, textarea {
     transform: scale(1.1);
 }
 
+/* شريط تقدم الرفع */
+.upload-progress {
+    position: absolute;
+    bottom: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 24px);
+    max-width: 320px;
+    background: var(--white);
+    border-radius: 20px;
+    padding: 8px 16px;
+    box-shadow: var(--shadow-md);
+    z-index: 10;
+}
+
+.upload-progress-bar {
+    height: 8px;
+    background: linear-gradient(90deg, var(--gold-500) 0%, var(--gold-700) 100%);
+    border-radius: 4px;
+    width: 0%;
+    transition: width 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.upload-progress-bar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+.upload-progress-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--navy-800);
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
 @media (max-width: 600px) {
     .file-upload-area {
         padding: 30px 16px;

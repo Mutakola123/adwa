@@ -1700,6 +1700,198 @@
     }
 }
 
+/* ============================================
+   التخزين السحابي
+   ============================================ */
+.cloud-status-card {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    background: linear-gradient(135deg, var(--beige-100) 0%, var(--white) 100%);
+    border: 2px solid var(--beige-300);
+    border-radius: var(--radius-lg);
+    padding: 24px 28px;
+    margin-bottom: 24px;
+    transition: all 0.3s;
+}
+
+.cloud-status-card.active {
+    background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%);
+    border-color: #10b981;
+}
+
+.cloud-status-card.inactive {
+    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+    border-color: #f59e0b;
+}
+
+.cloud-status-icon {
+    width: 70px;
+    height: 70px;
+    background: var(--white);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    color: var(--gray-500);
+    box-shadow: var(--shadow-md);
+    flex-shrink: 0;
+}
+
+.cloud-status-card.active .cloud-status-icon {
+    color: #10b981;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: var(--white);
+}
+
+.cloud-status-card.inactive .cloud-status-icon {
+    color: #f59e0b;
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: var(--white);
+}
+
+.cloud-status-info {
+    flex: 1;
+}
+
+.cloud-status-info h3 {
+    margin: 0 0 4px;
+    font-size: 1.2rem;
+    color: var(--navy-900);
+    font-weight: 800;
+}
+
+.cloud-status-info p {
+    margin: 0;
+    color: var(--gray-600);
+    font-size: 0.92rem;
+}
+
+.cloud-status-badge {
+    padding: 8px 18px;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+}
+
+.cloud-status-badge.success {
+    background: #10b981;
+    color: var(--white);
+}
+
+.cloud-status-badge.warning {
+    background: #f59e0b;
+    color: var(--white);
+}
+
+.storage-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    background: var(--beige-100);
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+}
+
+.stat-row-label {
+    color: var(--gray-700);
+    font-weight: 600;
+}
+
+.stat-row-value {
+    color: var(--navy-900);
+    font-weight: 700;
+    direction: ltr;
+    text-align: left;
+    font-family: 'Courier New', monospace;
+}
+
+.setup-steps {
+    padding-right: 20px;
+    color: var(--gray-700);
+    line-height: 1.9;
+    font-size: 0.95rem;
+}
+
+.setup-steps li {
+    margin-bottom: 14px;
+}
+
+.setup-steps li strong {
+    color: var(--navy-900);
+}
+
+.setup-steps code {
+    background: var(--beige-200);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85em;
+    color: var(--gold-700);
+    font-weight: 700;
+}
+
+.setup-steps a {
+    color: var(--gold-700);
+    font-weight: 700;
+}
+
+.setup-steps ul {
+    margin-top: 8px;
+    padding-right: 20px;
+}
+
+.setup-steps ul li {
+    margin-bottom: 4px;
+    font-size: 0.9rem;
+    color: var(--gray-600);
+}
+
+.cloud-benefits {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--beige-200);
+}
+
+.benefit-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: rgba(16, 185, 129, 0.08);
+    border-radius: var(--radius-sm);
+    font-size: 0.88rem;
+    color: var(--gray-700);
+}
+
+.benefit-item i {
+    color: #10b981;
+    font-size: 1.05rem;
+    flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+    .cloud-status-card {
+        flex-wrap: wrap;
+        padding: 18px;
+    }
+    .cloud-benefits {
+        grid-template-columns: 1fr;
+    }
+}
+
 @media (max-width: 600px) {
     .log-entry {
         grid-template-columns: auto 1fr;

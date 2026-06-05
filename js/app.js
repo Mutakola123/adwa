@@ -736,8 +736,28 @@ function setupSingleFileUpload(inputId, hiddenId, wrapperId) {
         // إظهار loading
         dropArea.classList.add('loading');
 
-        const result = await compressImage(file);
+        // إضافة شريط تقدم
+        let progressContainer = dropArea.querySelector('.upload-progress');
+        if (!progressContainer) {
+            progressContainer = document.createElement('div');
+            progressContainer.className = 'upload-progress';
+            progressContainer.innerHTML = '<div class="upload-progress-bar"></div><div class="upload-progress-text">0%</div>';
+            dropArea.appendChild(progressContainer);
+        }
+        const progressBar = progressContainer.querySelector('.upload-progress-bar');
+        const progressText = progressContainer.querySelector('.upload-progress-text');
+        progressContainer.style.display = 'block';
+        progressBar.style.width = '0%';
+        progressText.textContent = '0%';
+
+        const onProgress = (percent) => {
+            progressBar.style.width = percent + '%';
+            progressText.textContent = percent + '%';
+        };
+
+        const result = await processImageUpload(file, onProgress);
         dropArea.classList.remove('loading');
+        progressContainer.style.display = 'none';
 
         if (!result.success) {
             showToast('خطأ في الصورة', result.error, 'error');
@@ -745,15 +765,25 @@ function setupSingleFileUpload(inputId, hiddenId, wrapperId) {
             return;
         }
 
+        // الحصول على URL النهائي (سحابي أو محلي)
+        const finalUrl = result.storage === 'cloud' ? result.url : result.dataUrl;
+        const storageBadge = result.storage === 'cloud' ? '☁️ سحابي' : '💾 محلي';
+
         // عرض المعاينة
-        previewImg.src = result.dataUrl;
+        previewImg.src = finalUrl;
         fileName.textContent = file.name;
-        fileMeta.textContent = `${result.width}×${result.height} • ${formatFileSize(file.size)} • ${result.compressionRatio > 0 ? 'تم تقليل الحجم ' + result.compressionRatio + '%' : ''}`;
+        const metaText = `${result.width || '?'}×${result.height || '?'} • ${formatFileSize(file.size)} • ${storageBadge}`;
+        fileMeta.textContent = metaText;
         dropArea.style.display = 'none';
         preview.style.display = 'flex';
 
         // حفظ البيانات في الحقل المخفي
-        hidden.value = result.dataUrl;
+        hidden.value = finalUrl;
+
+        // تنبيه في حالة التحذير
+        if (result.warning) {
+            showToast('تنبيه', result.warning, 'warning');
+        }
     });
 
     // زر الحذف
@@ -809,10 +839,14 @@ function setupGalleryFileUpload(inputId, hiddenId, wrapperId) {
     async function handleFiles(files) {
         dropArea.classList.add('loading');
         for (const file of files) {
-            const result = await compressImage(file);
+            const result = await processImageUpload(file);
             if (result.success) {
-                galleryData.push(result.dataUrl);
-                addGalleryThumb(result.dataUrl, galleryData.length - 1);
+                const finalUrl = result.storage === 'cloud' ? result.url : result.dataUrl;
+                galleryData.push(finalUrl);
+                addGalleryThumb(finalUrl, galleryData.length - 1);
+                if (result.warning) {
+                    showToast('تنبيه', `${file.name}: ${result.warning}`, 'warning');
+                }
             } else {
                 showToast('خطأ', `${file.name}: ${result.error}`, 'error');
             }

@@ -281,6 +281,20 @@ function setupAdminListeners() {
         newPasswordInput.addEventListener('input', updatePasswordStrength);
     }
 
+    // إعدادات التخزين السحابي
+    const cloudinaryConfigForm = document.getElementById('cloudinaryConfigForm');
+    if (cloudinaryConfigForm) {
+        cloudinaryConfigForm.addEventListener('submit', handleCloudinaryConfig);
+    }
+    const testCloudinaryBtn = document.getElementById('testCloudinaryBtn');
+    if (testCloudinaryBtn) {
+        testCloudinaryBtn.addEventListener('click', testCloudinaryConnection);
+    }
+    const disableCloudinaryBtn = document.getElementById('disableCloudinaryBtn');
+    if (disableCloudinaryBtn) {
+        disableCloudinaryBtn.addEventListener('click', disableCloudinary);
+    }
+
     // رفع الصور في نماذج لوحة التحكم
     if (typeof setupSingleFileUpload === 'function') {
         setupSingleFileUpload('adminMainImageInput', null, 'adminMainImageUpload');
@@ -427,6 +441,140 @@ function renderLoginLog() {
     }).join('');
     container.innerHTML = html;
 }
+// ============================================
+// التخزين السحابي (Cloudinary)
+// ============================================
+function handleCloudinaryConfig(e) {
+    e.preventDefault();
+    const form = e.target;
+    const config = {
+        cloudName: form.cloudName.value.trim(),
+        uploadPreset: form.uploadPreset.value.trim(),
+        folder: form.folder.value.trim() || ''
+    };
+
+    if (!config.cloudName || !config.uploadPreset) {
+        showToast('خطأ', 'يجب إدخال Cloud Name و Upload Preset', 'error');
+        return;
+    }
+
+    if (setCloudinaryConfig(config)) {
+        showToast('تم الحفظ', 'تم حفظ إعدادات Cloudinary بنجاح', 'success');
+        updateCloudStorageUI();
+    } else {
+        showToast('خطأ', 'فشل حفظ الإعدادات', 'error');
+    }
+}
+
+async function testCloudinaryConnection() {
+    const config = getCloudinaryConfig();
+    if (!config) {
+        showToast('تنبيه', 'يرجى حفظ الإعدادات أولاً', 'warning');
+        return;
+    }
+
+    const btn = document.getElementById('testCloudinaryBtn');
+    const oldHtml = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الاختبار...';
+
+    try {
+        // اختبار عبر ping لـ API
+        const testUrl = `https://res.cloudinary.com/${config.cloudName}/image/upload/sample.jpg`;
+        const response = await fetch(testUrl, { method: 'HEAD' });
+
+        if (response.ok) {
+            localStorage.setItem('cloudinaryLastTest', new Date().toISOString());
+            showToast('نجح الاتصال ✓', 'Cloudinary يعمل بشكل صحيح', 'success');
+        } else {
+            showToast('فشل', `الخادم استجاب بـ ${response.status}. تحقق من Cloud Name`, 'error');
+        }
+    } catch (err) {
+        showToast('فشل الاتصال', 'تعذر الوصول لـ Cloudinary. تحقق من الاتصال بالإنترنت', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = oldHtml;
+        updateCloudStorageUI();
+    }
+}
+
+function disableCloudinary() {
+    showConfirm(
+        'تعطيل التخزين السحابي',
+        'هل أنت متأكد من تعطيل Cloudinary؟ الصور الجديدة ستحفظ محلياً فقط في المتصفح',
+        () => {
+            localStorage.removeItem(CLOUDINARY_CONFIG_KEY);
+            const form = document.getElementById('cloudinaryConfigForm');
+            if (form) form.reset();
+            showToast('تم التعطيل', 'تم تعطيل التخزين السحابي', 'success');
+            updateCloudStorageUI();
+        }
+    );
+}
+
+function updateCloudStorageUI() {
+    const config = getCloudinaryConfig();
+    const isEnabled = !!config;
+
+    // تحديث حالة البطاقة العلوية
+    const statusIcon = document.getElementById('cloudStatusIcon');
+    const statusTitle = document.getElementById('cloudStatusTitle');
+    const statusDesc = document.getElementById('cloudStatusDesc');
+    const statusBadge = document.getElementById('cloudStatusBadge');
+    const statusCard = document.getElementById('cloudStatusCard');
+
+    if (isEnabled) {
+        statusCard.classList.add('active');
+        statusCard.classList.remove('inactive');
+        statusIcon.innerHTML = '<i class="fas fa-cloud-upload-alt"></i>';
+        statusTitle.textContent = 'التخزين السحابي مفعّل';
+        statusDesc.textContent = 'الصور الجديدة تُرفع إلى Cloudinary تلقائياً';
+        statusBadge.textContent = 'نشط ✓';
+        statusBadge.className = 'cloud-status-badge success';
+    } else {
+        statusCard.classList.add('inactive');
+        statusCard.classList.remove('active');
+        statusIcon.innerHTML = '<i class="fas fa-cloud"></i>';
+        statusTitle.textContent = 'التخزين السحابي معطّل';
+        statusDesc.textContent = 'الصور تُحفظ محلياً في المتصفح (حد 5-10MB)';
+        statusBadge.textContent = 'غير مفعّل';
+        statusBadge.className = 'cloud-status-badge warning';
+    }
+
+    // ملء الحقول
+    if (config) {
+        const form = document.getElementById('cloudinaryConfigForm');
+        if (form) {
+            form.cloudName.value = config.cloudName || '';
+            form.uploadPreset.value = config.uploadPreset || '';
+            form.folder.value = config.folder || '';
+        }
+    }
+
+    // إظهار/إخفاء زر التعطيل
+    const disableBtn = document.getElementById('disableCloudinaryBtn');
+    if (disableBtn) {
+        disableBtn.style.display = isEnabled ? 'inline-flex' : 'none';
+    }
+
+    // تحديث الإحصائيات
+    const setText = (id, text) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = text;
+    };
+
+    setText('statCloudStatus', isEnabled ? '✓ مفعّل' : '✗ معطّل');
+    setText('statProvider', isEnabled ? 'Cloudinary' : 'لا يوجد (محلي)');
+    setText('statCloudName', config ? config.cloudName : '-');
+    setText('statFolder', config ? (config.folder || '/') : '-');
+
+    const lastTest = localStorage.getItem('cloudinaryLastTest');
+    if (lastTest) {
+        setText('statLastTest', new Date(lastTest).toLocaleString('ar-SA'));
+    } else {
+        setText('statLastTest', 'لم يتم');
+    }
+}
 
 // ============================================
 // التنقل بين الأقسام
@@ -448,7 +596,8 @@ function switchView(view) {
         pending: 'عقارات في الانتظار',
         requests: 'طلبات العملاء',
         add: 'إضافة عقار جديد',
-        security: 'الأمان وكلمة المرور'
+        security: 'الأمان وكلمة المرور',
+        cloud: 'التخزين السحابي'
     };
     document.getElementById('viewTitle').textContent = titles[view] || view;
 
@@ -461,6 +610,7 @@ function switchView(view) {
     if (view === 'pending') renderPending();
     if (view === 'requests') renderRequests();
     if (view === 'security') updateSessionInfo();
+    if (view === 'cloud') updateCloudStorageUI();
 }
 
 // ============================================
