@@ -32,7 +32,7 @@
                 <form class="login-form" id="loginForm">
                     <div class="login-field">
                         <label><i class="fas fa-user"></i> اسم المستخدم</label>
-                        <input type="text" id="loginUsername" required autocomplete="username" placeholder="admin">
+                        <input type="text" id="loginUsername" required autocomplete="username" placeholder="اسم المستخدم">
                     </div>
                     <div class="login-field">
                         <label><i class="fas fa-lock"></i> كلمة المرور</label>
@@ -43,16 +43,27 @@
                             </button>
                         </div>
                     </div>
+                    <div class="login-field captcha-field">
+                        <label><i class="fas fa-shield-alt"></i> تحقق أنك لست روبوت</label>
+                        <div class="captcha-group">
+                            <span class="captcha-question" id="captchaQuestion">؟+؟</span>
+                            <input type="number" id="captchaAnswer" required placeholder="النتيجة">
+                        </div>
+                    </div>
                     <button type="submit" class="login-btn">
                         <i class="fas fa-sign-in-alt"></i>
                         <span>تسجيل الدخول</span>
                     </button>
+                    <div class="login-attempts-warning" id="attemptsWarning" style="display:none;">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span id="attemptsText"></span>
+                    </div>
                     <div class="login-error" id="loginError"></div>
                 </form>
                 <div class="login-hint">
-                    <i class="fas fa-info-circle"></i>
-                    <span>بيانات الدخول الافتراضية:</span>
-                    <code>admin / admin123</code>
+                    <i class="fas fa-shield-alt"></i>
+                    <span>للدعم الفني:</span>
+                    <a href="tel:0595305559">0595305559</a>
                 </div>
             </div>
         </div>
@@ -94,6 +105,10 @@
                 <a href="#" class="sidebar-link" data-view="add">
                     <i class="fas fa-plus-circle"></i>
                     <span>إضافة عقار</span>
+                </a>
+                <a href="#" class="sidebar-link" data-view="security">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>الأمان وكلمة المرور</span>
                 </a>
             </nav>
             <div class="sidebar-footer">
@@ -329,6 +344,74 @@
                         </button>
                     </div>
                 </form>
+            </section>
+
+            <!-- عرض الأمان وكلمة المرور -->
+            <section class="admin-view" id="view-security" style="display:none;">
+                <div class="view-toolbar">
+                    <h2 style="margin: 0;"><i class="fas fa-shield-alt"></i> الأمان وكلمة المرور</h2>
+                </div>
+
+                <div class="security-grid">
+                    <!-- تغيير كلمة المرور -->
+                    <div class="security-card">
+                        <h3><i class="fas fa-key"></i> تغيير كلمة المرور</h3>
+                        <form class="admin-form" id="changePasswordForm">
+                            <div class="form-group">
+                                <label>كلمة المرور الحالية *</label>
+                                <input type="password" name="oldPassword" required>
+                            </div>
+                            <div class="form-group">
+                                <label>كلمة المرور الجديدة *</label>
+                                <input type="password" name="newPassword" required minlength="8" id="newPassword">
+                                <small class="form-hint">يجب أن تكون 8 أحرف على الأقل وتحتوي على أحرف وأرقام</small>
+                            </div>
+                            <div class="form-group">
+                                <label>تأكيد كلمة المرور الجديدة *</label>
+                                <input type="password" name="confirmPassword" required minlength="8">
+                            </div>
+                            <div class="password-strength" id="passwordStrength"></div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i> تحديث كلمة المرور
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- معلومات الجلسة -->
+                    <div class="security-card">
+                        <h3><i class="fas fa-info-circle"></i> معلومات الجلسة</h3>
+                        <div class="session-info" id="sessionInfo">
+                            <div class="info-row">
+                                <span class="info-label">المستخدم:</span>
+                                <span class="info-value" id="sessionUser">-</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">الصلاحية:</span>
+                                <span class="info-value" id="sessionRole">-</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">وقت الدخول:</span>
+                                <span class="info-value" id="sessionLoginTime">-</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">آخر نشاط:</span>
+                                <span class="info-value" id="sessionLastActivity">-</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">انتهاء الجلسة:</span>
+                                <span class="info-value" id="sessionExpiresIn">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- سجل محاولات الدخول -->
+                    <div class="security-card full-width-card">
+                        <h3><i class="fas fa-history"></i> آخر محاولات الدخول</h3>
+                        <div class="login-log" id="loginLog"></div>
+                    </div>
+                </div>
             </section>
         </main>
     </div>

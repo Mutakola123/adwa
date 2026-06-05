@@ -429,47 +429,350 @@ function deleteRequest(id) {
 }
 
 // ============================================
-// نظام المصادقة (Authentication)
+// نظام المصادقة الآمن (Secure Authentication)
 // ============================================
 
-const ADMIN_CREDENTIALS = {
-    username: 'admin',
-    password: 'admin123'
+const SECURITY_CONFIG = {
+    PBKDF2_ITERATIONS: 100000,    // عدد دورات التشفير
+    KEY_LENGTH: 256,               // طول المفتاح بالبت
+    HASH_ALGO: 'SHA-256',
+    MAX_LOGIN_ATTEMPTS: 5,        // عدد المحاولات قبل القفل
+    LOCKOUT_DURATION: 15 * 60,    // مدة القفل (15 دقيقة بالثواني)
+    SESSION_DURATION: 30 * 60,    // مدة الجلسة (30 دقيقة بالثواني)
+    INACTIVITY_TIMEOUT: 30 * 60,  // مهلة الخمول
 };
 
-function adminLogin(username, password) {
-    if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
-        const session = {
-            username,
-            loginTime: new Date().toISOString(),
-            token: btoa(`${username}:${Date.now()}`)
-        };
-        localStorage.setItem('adminSession', JSON.stringify(session));
-        return session;
-    }
-    return null;
+// توليد نص عشوائي آمن
+function generateRandomString(length = 32) {
+    const array = new Uint8Array(length);
+    crypto.getRandomValues(array);
+    return Array.from(array, b => b.toString(16).padStart(2, '0')).join('');
 }
 
+// توليد Salt عشوائي
+function generateSalt(length = 16) {
+    return generateRandomString(length);
+}
+
+// تشفير كلمة المرور باستخدام PBKDF2
+async function hashPassword(password, salt) {
+    const encoder = new TextEncoder();
+    const keyMaterial = await crypto.subtle.importKey(
+        'raw',
+        encoder.encode(password),
+        { name: 'PBKDF2' },
+        false,
+        ['deriveBits']
+    );
+    const derivedBits = await crypto.subtle.deriveBits(
+        {
+            name: 'PBKDF2',
+            salt: encoder.encode(salt),
+            iterations: SECURITY_CONFIG.PBKDF2_ITERATIONS,
+            hash: SECURITY_CONFIG.HASH_ALGO
+        },
+        keyMaterial,
+        SECURITY_CONFIG.KEY_LENGTH
+    );
+    return Array.from(new Uint8Array(derivedBits), b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// مقارنة آمنة لكلمات المرور
+async function verifyPassword(password, salt, hash) {
+    const computedHash = await hashPassword(password, salt);
+    return computedHash === hash;
+}
+
+// الحصول على قائمة المشرفين (متزامن)
+function getAdmins() {
+    const stored = localStorage.getItem('adminAccounts');
+    return stored ? JSON.parse(stored) : [];
+}
+
+// تهيئة النظام الأمني - يجب استدعاؤها عند تحميل الصفحة
+async function initializeSecurity() {
+    const admins = getAdmins();
+    if (admins.length === 0) {
+        // أول استخدام - إنشاء مشرف افتراضي
+        await initializeDefaultAdmin();
+    } else {
+        // التحقق من ترقية المشرفين القدامى (إن وجدوا)
+        let needsUpdate = false;
+        for (const admin of admins) {
+            if (admin.hash === 'LEGACY_PLAIN' || admin._legacy) {
+                // إعادة تشفير كلمة المرور القديمة 'admin123' بشكل آمن
+                const salt = generateSalt();
+                const hash = await hashPassword('admin123', salt);
+                admin.salt = salt;
+                admin.hash = hash;
+                admin.mustChangePassword = true;
+                delete admin._legacy;
+                delete admin._legacyPassword;
+                needsUpdate = true;
+            }
+        }
+        if (needsUpdate) {
+            localStorage.setItem('adminAccounts', JSON.stringify(admins));
+        }
+    }
+}
+
+// تهيئة المشرف الافتراضي (مرة واحدة فقط)
+async function initializeDefaultAdmin() {
+    const salt = generateSalt();
+    const defaultPassword = 'admin123'; // كلمة المرور الافتراضية
+    const hash = await hashPassword(defaultPassword, salt);
+    const defaultAdmin = {
+        username: 'admin',
+        salt: salt,
+        hash: hash,
+        role: 'superadmin',
+        createdAt: new Date().toISOString(),
+        lastPasswordChange: new Date().toISOString(),
+        mustChangePassword: true  // إجبار تغيير كلمة المرور
+    };
+    localStorage.setItem('adminAccounts', JSON.stringify([defaultAdmin]));
+}
+
+// الحصول على محاولات الدخول الفاشلة
+function getLoginAttempts() {
+    return JSON.parse(localStorage.getItem('loginAttempts') || '{"count": 0, "lastAttempt": null, "lockedUntil": null}');
+}
+
+// حفظ محاولات الدخول
+function saveLoginAttempts(attempts) {
+    localStorage.setItem('loginAttempts', JSON.stringify(attempts));
+}
+
+// التحقق من حالة القفل
+function isAccountLocked() {
+    const attempts = getLoginAttempts();
+    if (attempts.lockedUntil && Date.now() < attempts.lockedUntil) {
+        const remaining = Math.ceil((attempts.lockedUntil - Date.now()) / 1000 / 60);
+        return { locked: true, remainingMinutes: remaining };
+    }
+    return { locked: false };
+}
+
+// تسجيل محاولة فاشلة
+function recordFailedAttempt() {
+    const attempts = getLoginAttempts();
+    attempts.count++;
+    attempts.lastAttempt = new Date().toISOString();
+
+    if (attempts.count >= SECURITY_CONFIG.MAX_LOGIN_ATTEMPTS) {
+        attempts.lockedUntil = Date.now() + (SECURITY_CONFIG.LOCKOUT_DURATION * 1000);
+        attempts.count = 0;
+    }
+    saveLoginAttempts(attempts);
+    return attempts;
+}
+
+// مسح المحاولات الفاشلة عند نجاح تسجيل الدخول
+function clearLoginAttempts() {
+    localStorage.removeItem('loginAttempts');
+}
+
+// الحصول على سجل محاولات الدخول
+function getLoginLog() {
+    return JSON.parse(localStorage.getItem('loginLog') || '[]');
+}
+
+// إضافة محاولة إلى السجل
+function addToLoginLog(username, success) {
+    const log = getLoginLog();
+    log.unshift({
+        username,
+        success,
+        timestamp: new Date().toISOString(),
+        ip: 'local'  // لا يمكن الحصول على IP حقيقي client-side
+    });
+    // الاحتفاظ بآخر 50 محاولة فقط
+    if (log.length > 50) log.pop();
+    localStorage.setItem('loginLog', JSON.stringify(log));
+}
+
+// تسجيل دخول المشرف
+async function adminLogin(username, password) {
+    // التحقق من حالة القفل
+    const lockStatus = isAccountLocked();
+    if (lockStatus.locked) {
+        return {
+            success: false,
+            locked: true,
+            message: `الحساب مقفل. حاول بعد ${lockStatus.remainingMinutes} دقيقة`
+        };
+    }
+
+    const admins = getAdmins();
+    const admin = admins.find(a => a.username === username);
+
+    if (!admin) {
+        recordFailedAttempt();
+        addToLoginLog(username, false);
+        return { success: false, message: 'اسم المستخدم أو كلمة المرور غير صحيحة' };
+    }
+
+    const isValid = await verifyPassword(password, admin.salt, admin.hash);
+
+    if (!isValid) {
+        const attempts = recordFailedAttempt();
+        addToLoginLog(username, false);
+
+        const remaining = SECURITY_CONFIG.MAX_LOGIN_ATTEMPTS - attempts.count;
+        if (attempts.lockedUntil && Date.now() < attempts.lockedUntil) {
+            return {
+                success: false,
+                locked: true,
+                message: 'تم قفل الحساب لمدة 15 دقيقة بعد محاولات فاشلة متكررة'
+            };
+        }
+        return {
+            success: false,
+            message: `بيانات الدخول غير صحيحة. تبقى ${remaining} محاولة`
+        };
+    }
+
+    // نجح تسجيل الدخول
+    clearLoginAttempts();
+    addToLoginLog(username, true);
+
+    // توليد token جلسة آمن
+    const sessionToken = generateRandomString(64);
+    const session = {
+        username: admin.username,
+        role: admin.role,
+        loginTime: new Date().toISOString(),
+        lastActivity: new Date().toISOString(),
+        token: sessionToken,
+        mustChangePassword: admin.mustChangePassword || false
+    };
+    localStorage.setItem('adminSession', JSON.stringify(session));
+    return { success: true, session };
+}
+
+// تحديث نشاط المستخدم
+function updateActivity() {
+    const session = JSON.parse(localStorage.getItem('adminSession') || 'null');
+    if (session) {
+        session.lastActivity = new Date().toISOString();
+        localStorage.setItem('adminSession', JSON.stringify(session));
+    }
+}
+
+// تسجيل الخروج
 function adminLogout() {
+    const session = getAdminSession();
+    if (session) {
+        addToLoginLog(session.username, 'logout');
+    }
     localStorage.removeItem('adminSession');
 }
 
+// التحقق من حالة تسجيل الدخول
 function isAdminLoggedIn() {
     const session = JSON.parse(localStorage.getItem('adminSession') || 'null');
-    if (!session) return false;
-    // الجلسة صالحة لمدة 24 ساعة
-    const loginTime = new Date(session.loginTime).getTime();
+    if (!session || !session.token) return false;
+
+    // التحقق من انتهاء الجلسة
+    const lastActivity = new Date(session.lastActivity || session.loginTime).getTime();
     const now = Date.now();
-    const hoursPassed = (now - loginTime) / (1000 * 60 * 60);
-    if (hoursPassed > 24) {
+    const inactiveSeconds = (now - lastActivity) / 1000;
+
+    if (inactiveSeconds > SECURITY_CONFIG.INACTIVITY_TIMEOUT) {
         adminLogout();
         return false;
     }
     return true;
 }
 
+// الحصول على جلسة المشرف
 function getAdminSession() {
     return JSON.parse(localStorage.getItem('adminSession') || 'null');
+}
+
+// تغيير كلمة المرور
+async function changePassword(username, oldPassword, newPassword) {
+    const admins = getAdmins();
+    const index = admins.findIndex(a => a.username === username);
+
+    if (index === -1) {
+        return { success: false, message: 'المستخدم غير موجود' };
+    }
+
+    const admin = admins[index];
+    const isValid = await verifyPassword(oldPassword, admin.salt, admin.hash);
+
+    if (!isValid) {
+        return { success: false, message: 'كلمة المرور الحالية غير صحيحة' };
+    }
+
+    if (newPassword.length < 8) {
+        return { success: false, message: 'كلمة المرور الجديدة يجب أن تكون 8 أحرف على الأقل' };
+    }
+
+    // توليد salt جديد وhash كلمة المرور الجديدة
+    const newSalt = generateSalt();
+    const newHash = await hashPassword(newPassword, newSalt);
+
+    admins[index].salt = newSalt;
+    admins[index].hash = newHash;
+    admins[index].lastPasswordChange = new Date().toISOString();
+    admins[index].mustChangePassword = false;
+
+    localStorage.setItem('adminAccounts', JSON.stringify(admins));
+
+    // تحديث الجلسة
+    const session = getAdminSession();
+    if (session) {
+        session.mustChangePassword = false;
+        localStorage.setItem('adminSession', JSON.stringify(session));
+    }
+
+    return { success: true, message: 'تم تغيير كلمة المرور بنجاح' };
+}
+
+// إضافة مشرف جديد
+async function addAdmin(username, password, role = 'admin') {
+    const admins = getAdmins();
+    if (admins.find(a => a.username === username)) {
+        return { success: false, message: 'اسم المستخدم موجود بالفعل' };
+    }
+    if (password.length < 8) {
+        return { success: false, message: 'كلمة المرور يجب أن تكون 8 أحرف على الأقل' };
+    }
+
+    const salt = generateSalt();
+    const hash = await hashPassword(password, salt);
+    admins.push({
+        username,
+        salt,
+        hash,
+        role,
+        createdAt: new Date().toISOString(),
+        lastPasswordChange: new Date().toISOString(),
+        mustChangePassword: false
+    });
+    localStorage.setItem('adminAccounts', JSON.stringify(admins));
+    return { success: true, message: 'تمت إضافة المشرف بنجاح' };
+}
+
+// حذف مشرف
+function removeAdmin(username) {
+    const admins = getAdmins();
+    // لا يمكن حذف المشرف الأخير
+    if (admins.length <= 1) {
+        return { success: false, message: 'لا يمكن حذف آخر مشرف' };
+    }
+    // لا يمكن حذف superadmin الوحيد
+    const superadmins = admins.filter(a => a.role === 'superadmin');
+    const adminToRemove = admins.find(a => a.username === username);
+    if (adminToRemove && adminToRemove.role === 'superadmin' && superadmins.length <= 1) {
+        return { success: false, message: 'لا يمكن حذف آخر مدير عام' };
+    }
+    const filtered = admins.filter(a => a.username !== username);
+    localStorage.setItem('adminAccounts', JSON.stringify(filtered));
+    return { success: true, message: 'تم حذف المشرف' };
 }
 
 // تنسيق الأرقام بفواصل الآلاف

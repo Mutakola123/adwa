@@ -6,10 +6,17 @@ let currentView = 'dashboard';
 let confirmCallback = null;
 
 // تهيئة لوحة التحكم
-document.addEventListener('DOMContentLoaded', () => {
+let captchaAnswer = 0;
+let activityTimer = null;
+
+document.addEventListener('DOMContentLoaded', async () => {
+    // تهيئة النظام الأمني أولاً (ضروري قبل أي عملية مصادقة)
+    await initializeSecurity();
     checkAuth();
+    generateCaptcha();
     setupLoginForm();
     setupAdminListeners();
+    startActivityTracking();
 });
 
 function checkAuth() {
@@ -17,6 +24,10 @@ function checkAuth() {
         showDashboard();
         const session = getAdminSession();
         document.getElementById('adminUsername').textContent = session.username;
+        if (session.mustChangePassword) {
+            showToast('تنبيه أمني', 'يجب تغيير كلمة المرور الافتراضية فوراً', 'warning');
+            setTimeout(() => switchView('security'), 1000);
+        }
     } else {
         showLogin();
     }
@@ -25,12 +36,62 @@ function checkAuth() {
 function showLogin() {
     document.getElementById('loginScreen').style.display = 'flex';
     document.getElementById('adminDashboard').style.display = 'none';
+    generateCaptcha();
+    updateAttemptsWarning();
 }
 
 function showDashboard() {
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('adminDashboard').style.display = 'flex';
     refreshAll();
+    startSessionTimer();
+}
+
+// توليد Captcha بسيط
+function generateCaptcha() {
+    const a = Math.floor(Math.random() * 10) + 1;
+    const b = Math.floor(Math.random() * 10) + 1;
+    captchaAnswer = a + b;
+    const questionEl = document.getElementById('captchaQuestion');
+    if (questionEl) questionEl.textContent = `${a} + ${b} = ؟`;
+    const ansEl = document.getElementById('captchaAnswer');
+    if (ansEl) ansEl.value = '';
+}
+
+// تحديث تحذير المحاولات
+function updateAttemptsWarning() {
+    const attempts = getLoginAttempts();
+    const warningEl = document.getElementById('attemptsWarning');
+    const textEl = document.getElementById('attemptsText');
+    if (!warningEl || !textEl) return;
+
+    const lockStatus = isAccountLocked();
+    if (lockStatus.locked) {
+        warningEl.style.display = 'flex';
+        warningEl.style.background = 'rgba(220, 38, 38, 0.15)';
+        warningEl.style.color = '#dc2626';
+        textEl.textContent = `🔒 الحساب مقفل. حاول بعد ${lockStatus.remainingMinutes} دقيقة`;
+        document.getElementById('loginUsername').disabled = true;
+        document.getElementById('loginPassword').disabled = true;
+        document.getElementById('captchaAnswer').disabled = true;
+        document.querySelector('.login-btn').disabled = true;
+    } else if (attempts.count > 0) {
+        warningEl.style.display = 'flex';
+        warningEl.style.background = 'rgba(234, 179, 8, 0.15)';
+        warningEl.style.color = '#ca8a04';
+        const remaining = SECURITY_CONFIG.MAX_LOGIN_ATTEMPTS - attempts.count;
+        textEl.textContent = `⚠️ تبقى ${remaining} محاولة قبل قفل الحساب`;
+        document.getElementById('loginUsername').disabled = false;
+        document.getElementById('loginPassword').disabled = false;
+        document.getElementById('captchaAnswer').disabled = false;
+        document.querySelector('.login-btn').disabled = false;
+    } else {
+        warningEl.style.display = 'none';
+        document.getElementById('loginUsername').disabled = false;
+        document.getElementById('loginPassword').disabled = false;
+        document.getElementById('captchaAnswer').disabled = false;
+        document.querySelector('.login-btn').disabled = false;
+    }
 }
 
 // ============================================
@@ -41,23 +102,62 @@ function setupLoginForm() {
     const togglePassword = document.getElementById('togglePassword');
     const passwordInput = document.getElementById('loginPassword');
 
-    loginForm.addEventListener('submit', (e) => {
+    loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const username = document.getElementById('loginUsername').value.trim();
         const password = document.getElementById('loginPassword').value;
+        const captchaInput = parseInt(document.getElementById('captchaAnswer').value);
         const errorEl = document.getElementById('loginError');
+        const btn = loginForm.querySelector('.login-btn');
 
         errorEl.textContent = '';
         errorEl.classList.remove('show');
 
-        const session = adminLogin(username, password);
-        if (session) {
-            showDashboard();
-            document.getElementById('adminUsername').textContent = session.username;
-            showToast('مرحباً', `أهلاً ${session.username} في لوحة التحكم`, 'success');
-        } else {
-            errorEl.textContent = 'اسم المستخدم أو كلمة المرور غير صحيحة';
+        // التحقق من حالة القفل
+        const lockStatus = isAccountLocked();
+        if (lockStatus.locked) {
+            errorEl.textContent = `الحساب مقفل. حاول بعد ${lockStatus.remainingMinutes} دقيقة`;
             errorEl.classList.add('show');
+            return;
+        }
+
+        // التحقق من الـ Captcha
+        if (isNaN(captchaInput) || captchaInput !== captchaAnswer) {
+            errorEl.textContent = 'إجابة التحقق غير صحيحة';
+            errorEl.classList.add('show');
+            generateCaptcha();
+            return;
+        }
+
+        // تعطيل الزر أثناء المعالجة
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التحقق...';
+
+        try {
+            const result = await adminLogin(username, password);
+
+            if (result.success) {
+                showDashboard();
+                document.getElementById('adminUsername').textContent = result.session.username;
+                loginForm.reset();
+                if (result.session.mustChangePassword) {
+                    showToast('تنبيه أمني', 'يجب تغيير كلمة المرور الافتراضية فوراً', 'warning');
+                    setTimeout(() => switchView('security'), 800);
+                } else {
+                    showToast('مرحباً', `أهلاً ${result.session.username}`, 'success');
+                }
+            } else {
+                errorEl.textContent = result.message;
+                errorEl.classList.add('show');
+                generateCaptcha();
+                updateAttemptsWarning();
+            }
+        } catch (err) {
+            errorEl.textContent = 'حدث خطأ في تسجيل الدخول';
+            errorEl.classList.add('show');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-sign-in-alt"></i><span>تسجيل الدخول</span>';
         }
     });
 
@@ -66,6 +166,30 @@ function setupLoginForm() {
         passwordInput.type = type;
         togglePassword.querySelector('i').className = type === 'password' ? 'fas fa-eye' : 'fas fa-eye-slash';
     });
+}
+
+// تتبع نشاط المستخدم (لقفل الجلسة عند الخمول)
+function startActivityTracking() {
+    const events = ['mousedown', 'keypress', 'scroll', 'touchstart', 'click'];
+    events.forEach(evt => {
+        document.addEventListener(evt, () => {
+            if (isAdminLoggedIn()) updateActivity();
+        }, { passive: true });
+    });
+}
+
+// مؤقت الجلسة - يعرض الوقت المتبقي ويغلق عند انتهاء الجلسة
+function startSessionTimer() {
+    if (activityTimer) clearInterval(activityTimer);
+    activityTimer = setInterval(() => {
+        if (!isAdminLoggedIn()) {
+            clearInterval(activityTimer);
+            showLogin();
+            showToast('انتهت الجلسة', 'تم تسجيل خروجك تلقائياً بسبب الخمول', 'warning');
+            return;
+        }
+        updateSessionInfo();
+    }, 30000); // كل 30 ثانية
 }
 
 // ============================================
@@ -144,6 +268,157 @@ function setupAdminListeners() {
             }
         });
     });
+
+    // نموذج تغيير كلمة المرور
+    const changePasswordForm = document.getElementById('changePasswordForm');
+    if (changePasswordForm) {
+        changePasswordForm.addEventListener('submit', handleChangePassword);
+    }
+
+    // مؤشر قوة كلمة المرور
+    const newPasswordInput = document.getElementById('newPassword');
+    if (newPasswordInput) {
+        newPasswordInput.addEventListener('input', updatePasswordStrength);
+    }
+}
+
+// تقييم قوة كلمة المرور
+function getPasswordStrength(password) {
+    let score = 0;
+    if (password.length >= 8) score++;
+    if (password.length >= 12) score++;
+    if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score++;
+    if (/\d/.test(password)) score++;
+    if (/[!@#$%^&*(),.?":{}|<>_\-+=[\]\\/'`~]/.test(password)) score++;
+    return score;
+}
+
+function updatePasswordStrength() {
+    const password = document.getElementById('newPassword').value;
+    const strengthEl = document.getElementById('passwordStrength');
+    if (!strengthEl) return;
+    const score = getPasswordStrength(password);
+    const levels = [
+        { text: '', class: '' },
+        { text: 'ضعيفة جداً', class: 'strength-very-weak' },
+        { text: 'ضعيفة', class: 'strength-weak' },
+        { text: 'متوسطة', class: 'strength-medium' },
+        { text: 'جيدة', class: 'strength-good' },
+        { text: 'قوية جداً', class: 'strength-very-strong' }
+    ];
+    if (password.length === 0) {
+        strengthEl.innerHTML = '';
+        return;
+    }
+    const level = levels[score];
+    strengthEl.innerHTML = `<div class="strength-bar ${level.class}"><span></span></div><span class="strength-text">${level.text}</span>`;
+}
+
+// تغيير كلمة المرور
+async function handleChangePassword(e) {
+    e.preventDefault();
+    const form = e.target;
+    const oldPassword = form.oldPassword.value;
+    const newPassword = form.newPassword.value;
+    const confirmPassword = form.confirmPassword.value;
+
+    if (newPassword !== confirmPassword) {
+        showToast('خطأ', 'كلمة المرور الجديدة وتأكيدها غير متطابقتين', 'error');
+        return;
+    }
+
+    const strength = getPasswordStrength(newPassword);
+    if (strength < 3) {
+        showToast('كلمة مرور ضعيفة', 'يجب أن تحتوي على أحرف كبيرة وصغيرة وأرقام ورموز', 'warning');
+        return;
+    }
+
+    const session = getAdminSession();
+    if (!session) {
+        showToast('خطأ', 'الجلسة منتهية، سجل الدخول مرة أخرى', 'error');
+        return;
+    }
+
+    const btn = form.querySelector('button[type="submit"]');
+    const oldHtml = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التحديث...';
+
+    try {
+        const result = await changePassword(session.username, oldPassword, newPassword);
+        if (result.success) {
+            showToast('نجح', result.message, 'success');
+            form.reset();
+            document.getElementById('passwordStrength').innerHTML = '';
+        } else {
+            showToast('فشل', result.message, 'error');
+        }
+    } catch (err) {
+        showToast('خطأ', 'حدث خطأ أثناء تغيير كلمة المرور', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = oldHtml;
+    }
+}
+
+// تحديث معلومات الجلسة
+function updateSessionInfo() {
+    const session = getAdminSession();
+    if (!session) return;
+
+    const setText = (id, text) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = text;
+    };
+
+    setText('sessionUser', session.username);
+    setText('sessionRole', session.role === 'superadmin' ? 'مدير عام' : 'مشرف');
+    setText('sessionLoginTime', new Date(session.loginTime).toLocaleString('ar-SA'));
+
+    if (session.lastActivity) {
+        const lastAct = new Date(session.lastActivity);
+        const diff = Math.floor((Date.now() - lastAct.getTime()) / 1000 / 60);
+        setText('sessionLastActivity', diff < 1 ? 'الآن' : `منذ ${diff} دقيقة`);
+    }
+
+    if (session.lastActivity) {
+        const expiresAt = new Date(session.lastActivity).getTime() + (SECURITY_CONFIG.INACTIVITY_TIMEOUT * 1000);
+        const remaining = Math.max(0, Math.floor((expiresAt - Date.now()) / 1000 / 60));
+        setText('sessionExpiresIn', `${remaining} دقيقة`);
+    }
+
+    renderLoginLog();
+}
+
+// عرض سجل محاولات الدخول
+function renderLoginLog() {
+    const log = getLoginLog();
+    const container = document.getElementById('loginLog');
+    if (!container) return;
+
+    if (log.length === 0) {
+        container.innerHTML = '<div class="empty-state"><i class="fas fa-history"></i><p>لا توجد محاولات مسجلة</p></div>';
+        return;
+    }
+
+    const html = log.slice(0, 20).map(entry => {
+        let icon, status, color;
+        if (entry.success === true) {
+            icon = 'fa-check-circle'; status = 'نجح'; color = 'success';
+        } else if (entry.success === 'logout') {
+            icon = 'fa-sign-out-alt'; status = 'خروج'; color = 'info';
+        } else {
+            icon = 'fa-times-circle'; status = 'فشل'; color = 'danger';
+        }
+        const time = new Date(entry.timestamp).toLocaleString('ar-SA');
+        return `<div class="log-entry log-${color}">
+            <i class="fas ${icon}"></i>
+            <span class="log-user">${entry.username}</span>
+            <span class="log-status">${status}</span>
+            <span class="log-time">${time}</span>
+        </div>`;
+    }).join('');
+    container.innerHTML = html;
 }
 
 // ============================================
@@ -165,7 +440,8 @@ function switchView(view) {
         properties: 'إدارة العقارات',
         pending: 'عقارات في الانتظار',
         requests: 'طلبات العملاء',
-        add: 'إضافة عقار جديد'
+        add: 'إضافة عقار جديد',
+        security: 'الأمان وكلمة المرور'
     };
     document.getElementById('viewTitle').textContent = titles[view] || view;
 
@@ -177,6 +453,7 @@ function switchView(view) {
     if (view === 'properties') renderPropertiesTable();
     if (view === 'pending') renderPending();
     if (view === 'requests') renderRequests();
+    if (view === 'security') updateSessionInfo();
 }
 
 // ============================================
