@@ -1085,3 +1085,197 @@ function showToast(title, message, type = 'success') {
         setTimeout(() => toast.remove(), 300);
     }, 4000);
 }
+
+// ============================================
+// البحث الذكي - Google Custom Search + داخلي
+// ============================================
+
+// 1) عند تحميل الصفحة: التحقق من URL params
+document.addEventListener('DOMContentLoaded', () => {
+    const params = new URLSearchParams(window.location.search);
+    const q = params.get('q');
+    if (q) {
+        const input = document.getElementById('searchInput');
+        if (input) {
+            input.value = q;
+            currentFilters.search = q;
+            applyFilters();
+        }
+    }
+});
+
+// 2) فتح/إغلاق شريط البحث الذكي
+function toggleQuickSearch() {
+    const box = document.getElementById('quickSearchBox');
+    if (box) box.classList.toggle('open');
+}
+
+// 3) بحث Google مخصص - يفتح modal بنتائج
+async function handleGoogleSearch(event) {
+    event.preventDefault();
+    const query = document.getElementById('googleCSEQuery').value.trim();
+    if (!query) return false;
+
+    // تحديث URL (مهم لـ SEO)
+    const url = new URL(window.location);
+    url.searchParams.set('q', query);
+    window.history.pushState({}, '', url);
+
+    // عرض شاشة التحميل
+    const modal = document.getElementById('googleSearchResults');
+    const titleEl = document.getElementById('searchResultsTitle');
+    const queryEl = document.getElementById('searchResultsQuery');
+    const contentEl = document.getElementById('searchResultsContent');
+    const fullLink = document.getElementById('googleFullSearchLink');
+
+    titleEl.textContent = '🔍 جاري البحث...';
+    queryEl.textContent = `البحث عن: "${query}"`;
+    contentEl.innerHTML = '<div style="text-align:center; padding:40px;"><div class="loader"></div><p style="color:#666; margin-top:16px;">يبحث في موقعنا...</p></div>';
+    modal.style.display = 'block';
+    fullLink.href = `https://www.google.com/search?q=${encodeURIComponent(query + ' site:Mutakola123.github.io/adwa')}`;
+
+    // البحث الداخلي أولاً
+    const localResults = searchLocalProperties(query);
+
+    setTimeout(() => {
+        if (localResults.length > 0) {
+            contentEl.innerHTML = renderLocalResults(localResults, query);
+        } else {
+            contentEl.innerHTML = `
+                <div style="text-align:center; padding:40px 20px;">
+                    <div style="font-size:3rem; margin-bottom:16px;">🤷‍♂️</div>
+                    <h3 style="color:#1e3a8a; margin:0 0 12px;">لا توجد نتائج في موقعنا</h3>
+                    <p style="color:#666; margin:0 0 24px;">جرّب البحث في Google الكامل عن "${escapeHtml(query)}"</p>
+                    <a href="https://www.google.com/search?q=${encodeURIComponent(query + ' site:Mutakola123.github.io/adwa')}" target="_blank" rel="noopener" style="display:inline-block; background:#4285f4; color:#fff; padding:12px 24px; border-radius:8px; text-decoration:none; font-weight:700;">🔍 بحث في Google الكامل</a>
+                </div>
+            `;
+        }
+    }, 500);
+
+    return false;
+}
+
+// 4) بحث محلي في العقارات
+function searchLocalProperties(query) {
+    if (!allProperties || allProperties.length === 0) return [];
+    const q = query.toLowerCase();
+    const keywords = q.split(/\s+/).filter(k => k.length > 0);
+
+    return allProperties.filter(p => {
+        const haystack = [
+            p.title, p.description, p.type, p.city, p.neighborhood,
+            p.address, p.features ? p.features.join(' ') : '',
+            p.price ? p.price.toString() : ''
+        ].join(' ').toLowerCase();
+
+        return keywords.every(keyword => haystack.includes(keyword));
+    });
+}
+
+// 5) عرض النتائج المحلية
+function renderLocalResults(results, query) {
+    const html = results.map(p => `
+        <div class="search-result-item" style="background:#f9f6f0; border-radius:12px; padding:20px; margin-bottom:12px; border-right:4px solid #fbbf24;">
+            <h3 style="color:#1e3a8a; margin:0 0 8px; font-size:1.15rem;">
+                <a href="#listings" onclick="openProperty(${p.id})" style="color:inherit; text-decoration:none;">${highlightText(p.title, query)}</a>
+            </h3>
+            <div style="color:#666; font-size:0.9rem; margin-bottom:8px;">
+                📍 ${highlightText(p.neighborhood + ' - ' + p.city, query)}
+            </div>
+            <p style="color:#555; line-height:1.6; margin:8px 0; font-size:0.95rem;">${highlightText((p.description || '').substring(0, 150), query)}${p.description && p.description.length > 150 ? '...' : ''}</p>
+            <div style="display:flex; gap:16px; margin-top:12px; flex-wrap:wrap; color:#1e3a8a; font-weight:700;">
+                <span>💰 ${formatPrice(p.price)}</span>
+                <span>📐 ${p.area} م²</span>
+                <span>🏠 ${getTypeLabel(p.type)}</span>
+            </div>
+        </div>
+    `).join('');
+
+    return `
+        <div style="background:#e8f5e9; color:#1b5e20; padding:12px 16px; border-radius:8px; margin-bottom:16px; font-size:0.95rem;">
+            ✅ وُجد ${results.length} ${results.length === 1 ? 'نتيجة' : 'نتائج'} في موقعنا
+        </div>
+        ${html}
+    `;
+}
+
+// 6) إبراز كلمات البحث في النص
+function highlightText(text, query) {
+    if (!text) return '';
+    const keywords = query.split(/\s+/).filter(k => k.length > 2);
+    let result = escapeHtml(text);
+    keywords.forEach(kw => {
+        const regex = new RegExp('(' + escapeRegex(kw) + ')', 'gi');
+        result = result.replace(regex, '<mark style="background:#fef3c7; padding:2px 4px; border-radius:3px;">$1</mark>');
+    });
+    return result;
+}
+
+function escapeHtml(text) {
+    const map = {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'};
+    return String(text).replace(/[&<>"']/g, m => map[m]);
+}
+
+function escapeRegex(str) {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+// 7) دوال مساعدة
+function formatPrice(price) {
+    if (!price) return 'السعر عند الطلب';
+    return new Intl.NumberFormat('ar-SA').format(price) + ' ريال';
+}
+
+function getTypeLabel(type) {
+    const labels = {
+        'villa': 'فيلا',
+        'apartment': 'شقة',
+        'land': 'أرض',
+        'commercial': 'تجاري',
+        'building': 'عمارة',
+        'farm': 'مزرعة',
+        'shop': 'محل',
+        'office': 'مكتب'
+    };
+    return labels[type] || type;
+}
+
+function openProperty(id) {
+    document.getElementById('googleSearchResults').style.display = 'none';
+    setTimeout(() => {
+        const property = allProperties.find(p => p.id === id);
+        if (property) {
+            showPropertyDetails(id);
+            document.getElementById('listings').scrollIntoView({ behavior: 'smooth' });
+        }
+    }, 300);
+}
+
+// 8) اختصارات لوحة المفاتيح للبحث
+document.addEventListener('keydown', (e) => {
+    // Ctrl+K أو / لفتح البحث
+    if ((e.ctrlKey && e.key === 'k') || (e.key === '/' && !['INPUT','TEXTAREA'].includes(document.activeElement.tagName))) {
+        e.preventDefault();
+        const input = document.getElementById('googleCSEQuery');
+        if (input) {
+            input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            setTimeout(() => input.focus(), 300);
+        }
+    }
+    // Escape لإغلاق النتائج
+    if (e.key === 'Escape') {
+        const modal = document.getElementById('googleSearchResults');
+        if (modal) modal.style.display = 'none';
+    }
+});
+
+// 9) عرض الـFAQ details بأيقونة دوّارة
+document.addEventListener('toggle', (e) => {
+    if (e.target.classList && e.target.classList.contains('faq-item')) {
+        const icon = e.target.querySelector('.faq-icon');
+        if (icon) {
+            icon.textContent = e.target.open ? '−' : '+';
+            icon.style.transform = e.target.open ? 'rotate(180deg)' : 'rotate(0deg)';
+        }
+    }
+}, true);

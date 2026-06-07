@@ -166,6 +166,117 @@
     }
     </script>
 
+    <!-- Sitelinks Search Box Schema - يخلي Google يعرض شريط بحث في النتائج -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "url": "https://Mutakola123.github.io/adwa/",
+        "name": "مكتب أضواء الفيصالسة للخدمات العقارية",
+        "description": "مكتب عقاري متخصص في المزاحمية والرياض",
+        "inLanguage": "ar-SA",
+        "potentialAction": {
+            "@type": "SearchAction",
+            "target": {
+                "@type": "EntryPoint",
+                "urlTemplate": "https://Mutakola123.github.io/adwa/?q={search_term_string}"
+            },
+            "query-input": "required name=search_term_string"
+        }
+    }
+    </script>
+
+    <!-- FAQPage Schema - يخلي Google يعرض الإجابات مباشرة في النتائج -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+            {
+                "@type": "Question",
+                "name": "ما هي المناطق التي تخدمونها؟",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "نخدم المزاحمية (مقرنا الرئيسي في حي غرناطة) والرياض وضواحيها. نتخصص في السوق المحلي ولدينا معرفة عميقة بالأسعار والاتجاهات في كل حي."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "هل تقييم العقار مجاني؟",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "نعم، خدمة تقييم العقار مجانية بالكامل. يحضر خبيرنا إلى العقار، يفحصه، ويقدّم تقريراً مفصّلاً بالقيمة السوقية خلال 24-48 ساعة."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "كم تستغرق عملية بيع العقار؟",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "تختلف المدة حسب العقار والسوق، لكن في المتوسط من 30 إلى 90 يوماً. نساعد في تسريع العملية عبر التسويق الجيد والتصوير الاحترافي والعرض على شبكة واسعة من المشترين."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "ما هي خدماتكم في إبرام العقود؟",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "نتولى كامل عملية التوثيق بدءاً من صياغة العقد والتحقق من الأوراق والتنسيق مع كاتب العدل حتى إتمام نقل الملكية عبر منصة ناجز."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "هل تقدّمون خدمة إدارة الأملاك؟",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "نعم. نقدّم خدمة إدارة الأملاك الشاملة للمالكين: تحصيل الإيجارات، متابعة الصيانة، التعامل مع المستأجرين، تقارير دورية. نسبتنا 5-8% من الإيجار."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "ما هي عمولتكم؟",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "العمولة 2.5% من قيمة العقار عند البيع (يدفعها البائع عادةً) وشهر إيجار واحد عند التأجير. رسوم شفافة، لا رسوم خفية."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "هل أنتم مرخّصون رسمياً؟",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "نعم، مكتبنا مرخّص من هيئة العقار السعودية ومنتسب لبوابة فال للوسطاء العقاريين. كل وكلائنا يحملون ترخيص وسيط عقاري معتمد."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "كيف أتواصل معكم خارج ساعات العمل؟",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "عبر واتساب على الرقم 0595305559 متاح 24/7. أو اترك رسالة في صفحة تواصل معنا وسنرد عليك في أقل من ساعتين خلال أوقات العمل."
+                }
+            }
+        ]
+    }
+    </script>
+
+    <!-- Speakable Schema - للأجهزة الذكية والبحث الصوتي -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "name": "مكتب أضواء الفيصالسة للخدمات العقارية",
+        "speakable": {
+            "@type": "SpeakableSpecification",
+            "xpath": [
+                "/html/head/title",
+                "/html/body//h1",
+                "/html/body//h2"
+            ]
+        }
+    }
+    </script>
+
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://Mutakola123.github.io/adwa/">
@@ -251,9 +362,9 @@
                 <a href="#home" class="nav-link active">الرئيسية</a>
                 <a href="#services" class="nav-link">خدماتنا</a>
                 <a href="#listings" class="nav-link">العقارات</a>
+                <a href="#faq" class="nav-link">أسئلة شائعة</a>
                 <a href="#add-property" class="nav-link">أضف عقارك</a>
                 <a href="#request" class="nav-link">اطلب عقارك</a>
-                <a href="blog.html" class="nav-link">المدونة</a>
                 <a href="#contact" class="nav-link">تواصل معنا</a>
             </nav>
 
@@ -791,39 +902,112 @@
         </div>
     </section>
 
-    <!-- قسم المدونة -->
-    <section class="blog-preview" id="blog" style="padding: 80px 20px; background: #f9f6f0;">
-        <div class="container">
+    <!-- قسم الأسئبة الشائعة + بحث Google -->
+    <section class="faq-section" id="faq" style="padding: 80px 20px; background: #f9f6f0;">
+        <div class="container" style="max-width: 1000px;">
             <div class="section-header" style="text-align: center; margin-bottom: 48px;">
-                <span class="section-badge">المدونة العقارية</span>
-                <h2 class="section-title">مقالات <span class="gold-text">وأدلة متخصصة</span></h2>
-                <p class="section-subtitle">نصائح وأدلة من خبرائنا لمساعدتك في اتخاذ القرار الصحيح</p>
+                <span class="section-badge">مركز المساعدة</span>
+                <h2 class="section-title">أسئلة <span class="gold-text">شائعة</span></h2>
+                <p class="section-subtitle">إجابات على أكثر الأسئلة التي يطرحها عملاؤنا</p>
             </div>
-            <div class="blog-preview-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px; max-width: 1200px; margin: 0 auto;">
-                <a href="blog/buy-guide-muzahmiyya.html" class="blog-preview-card" style="background: #fff; border-radius: 12px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); text-decoration: none; color: inherit; transition: all 0.3s; border-top: 4px solid #fbbf24;">
-                    <span style="background: #1e3a8a; color: #fff; padding: 4px 12px; border-radius: 16px; font-size: 0.8rem; font-weight: 700;">أدلة المناطق</span>
-                    <h3 style="color: #1e3a8a; margin: 16px 0 12px; font-size: 1.2rem;">دليل شراء العقارات في المزاحمية 2026</h3>
-                    <p style="color: #666; line-height: 1.6; margin: 0 0 16px; font-size: 0.95rem;">دليل شامل للسوق العقاري في المزاحمية، الأسعار، الأحياء، والفرص الاستثمارية.</p>
-                    <span style="color: #1e3a8a; font-weight: 700; font-size: 0.9rem;">اقرأ المزيد ←</span>
-                </a>
-                <a href="blog/buy-villa-riyadh.html" class="blog-preview-card" style="background: #fff; border-radius: 12px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); text-decoration: none; color: inherit; transition: all 0.3s; border-top: 4px solid #fbbf24;">
-                    <span style="background: #1e3a8a; color: #fff; padding: 4px 12px; border-radius: 16px; font-size: 0.8rem; font-weight: 700;">دليل الشراء</span>
-                    <h3 style="color: #1e3a8a; margin: 16px 0 12px; font-size: 1.2rem;">12 نقطة قبل شراء فيلا في الرياض</h3>
-                    <p style="color: #666; line-height: 1.6; margin: 0 0 16px; font-size: 0.95rem;">قائمة مراجعة شاملة من الموقع والفحص إلى الأوراق القانونية والتفاوض.</p>
-                    <span style="color: #1e3a8a; font-weight: 700; font-size: 0.9rem;">اقرأ المزيد ←</span>
-                </a>
-                <a href="blog/real-estate-investment.html" class="blog-preview-card" style="background: #fff; border-radius: 12px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); text-decoration: none; color: inherit; transition: all 0.3s; border-top: 4px solid #fbbf24;">
-                    <span style="background: #1e3a8a; color: #fff; padding: 4px 12px; border-radius: 16px; font-size: 0.8rem; font-weight: 700;">الاستثمار</span>
-                    <h3 style="color: #1e3a8a; margin: 16px 0 12px; font-size: 1.2rem;">لماذا الاستثمار في المزاحمية ذكي في 2026؟</h3>
-                    <p style="color: #666; line-height: 1.6; margin: 0 0 16px; font-size: 0.95rem;">تحليل شامل للعوائد الاستثمارية، دراسات حالة، ونصائح من مستثمرين.</p>
-                    <span style="color: #1e3a8a; font-weight: 700; font-size: 0.9rem;">اقرأ المزيد ←</span>
-                </a>
+
+            <!-- شريط بحث Google -->
+            <div class="google-search-box" style="background: #fff; border-radius: 16px; padding: 32px; box-shadow: 0 4px 16px rgba(30,58,138,0.08); margin-bottom: 32px; text-align: center;">
+                <h3 style="color: #1e3a8a; margin: 0 0 8px; font-size: 1.2rem;">🔍 ابحث في موقعنا</h3>
+                <p style="color: #666; margin: 0 0 20px; font-size: 0.95rem;">بحث متقدم عبر Google عن العقارات والمناطق والخدمات</p>
+                <form id="googleCSEForm" onsubmit="return handleGoogleSearch(event)" style="display: flex; gap: 8px; max-width: 600px; margin: 0 auto;">
+                    <input type="text" id="googleCSEQuery" name="q" placeholder="مثال: فلل للبيع في المزاحمية..." required style="flex: 1; padding: 14px 18px; border: 2px solid #e5e0d5; border-radius: 10px; font-size: 1rem; font-family: inherit; outline: none; transition: border 0.2s;" onfocus="this.style.borderColor='#fbbf24'" onblur="this.style.borderColor='#e5e0d5'">
+                    <button type="submit" style="background: linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 100%); color: #fff; border: none; padding: 14px 28px; border-radius: 10px; font-size: 1rem; font-weight: 700; cursor: pointer; font-family: inherit;">بحث</button>
+                </form>
             </div>
-            <div style="text-align: center; margin-top: 40px;">
-                <a href="blog.html" style="display: inline-block; background: linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 100%); color: #fff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 700; transition: transform 0.2s;">📚 تصفّح جميع المقالات</a>
+
+            <!-- الأسئلة الشائعة -->
+            <div class="faq-list" id="faqList">
+                <details class="faq-item" style="background: #fff; border-radius: 12px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: all 0.3s;">
+                    <summary style="padding: 20px 24px; cursor: pointer; font-weight: 700; color: #1e3a8a; font-size: 1.05rem; list-style: none; display: flex; justify-content: space-between; align-items: center;">
+                        <span>ما هي المناطق التي تخدمونها؟</span>
+                        <span class="faq-icon" style="background: #fbbf24; color: #1e3a8a; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; transition: transform 0.3s;">+</span>
+                    </summary>
+                    <div style="padding: 0 24px 20px; color: #444; line-height: 1.8;">نخدم <strong>المزاحمية</strong> (مقرنا الرئيسي - حي غرناطة) و<strong>الرياض</strong> وضواحيها. نتخصص في السوق المحلي ولدينا معرفة عميقة بالأسعار والاتجاهات في كل حي.</div>
+                </details>
+
+                <details class="faq-item" style="background: #fff; border-radius: 12px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                    <summary style="padding: 20px 24px; cursor: pointer; font-weight: 700; color: #1e3a8a; font-size: 1.05rem; list-style: none; display: flex; justify-content: space-between; align-items: center;">
+                        <span>هل تقييم العقار مجاني؟</span>
+                        <span class="faq-icon" style="background: #fbbf24; color: #1e3a8a; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700;">+</span>
+                    </summary>
+                    <div style="padding: 0 24px 20px; color: #444; line-height: 1.8;">نعم، خدمة <strong>تقييم العقار</strong> مجانية بالكامل. يحضر خبيرنا إلى العقار، يفحصه، ويقدّم تقريراً مفصّلاً بالقيمة السوقية خلال 24-48 ساعة.</div>
+                </details>
+
+                <details class="faq-item" style="background: #fff; border-radius: 12px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                    <summary style="padding: 20px 24px; cursor: pointer; font-weight: 700; color: #1e3a8a; font-size: 1.05rem; list-style: none; display: flex; justify-content: space-between; align-items: center;">
+                        <span>كم تستغرق عملية بيع العقار؟</span>
+                        <span class="faq-icon" style="background: #fbbf24; color: #1e3a8a; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700;">+</span>
+                    </summary>
+                    <div style="padding: 0 24px 20px; color: #444; line-height: 1.8;">تختلف المدة حسب العقار والسوق، لكن في المتوسط من <strong>30 إلى 90 يوماً</strong>. نساعد في تسريع العملية عبر التسويق الجيد، والتصوير الاحترافي، والعرض على شبكة واسعة من المشترين.</div>
+                </details>
+
+                <details class="faq-item" style="background: #fff; border-radius: 12px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                    <summary style="padding: 20px 24px; cursor: pointer; font-weight: 700; color: #1e3a8a; font-size: 1.05rem; list-style: none; display: flex; justify-content: space-between; align-items: center;">
+                        <span>ما هي خدماتكم في إبرام العقود؟</span>
+                        <span class="faq-icon" style="background: #fbbf24; color: #1e3a8a; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700;">+</span>
+                    </summary>
+                    <div style="padding: 0 24px 20px; color: #444; line-height: 1.8;">نتولى <strong>كامل عملية التوثيق</strong> بدءاً من صياغة العقد، التحقق من الأوراق، التنسيق مع كاتب العدل، حتى إتمام نقل الملكية عبر منصة ناجز. خدمة شاملة بأقل تكلفة.</div>
+                </details>
+
+                <details class="faq-item" style="background: #fff; border-radius: 12px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                    <summary style="padding: 20px 24px; cursor: pointer; font-weight: 700; color: #1e3a8a; font-size: 1.05rem; list-style: none; display: flex; justify-content: space-between; align-items: center;">
+                        <span>هل تقدّمون خدمة إدارة الأملاك؟</span>
+                        <span class="faq-icon" style="background: #fbbf24; color: #1e3a8a; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700;">+</span>
+                    </summary>
+                    <div style="padding: 0 24px 20px; color: #444; line-height: 1.8;">نعم. نقدّم خدمة <strong>إدارة الأملاك الشاملة</strong> للمالكين الذين لا يريدون عناء الإدارة اليومية: تحصيل الإيجارات، متابعة الصيانة، التعامل مع المستأجرين، تقارير دورية. نسبتنا 5-8% من الإيجار.</div>
+                </details>
+
+                <details class="faq-item" style="background: #fff; border-radius: 12px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                    <summary style="padding: 20px 24px; cursor: pointer; font-weight: 700; color: #1e3a8a; font-size: 1.05rem; list-style: none; display: flex; justify-content: space-between; align-items: center;">
+                        <span>ما هي عمولتكم؟</span>
+                        <span class="faq-icon" style="background: #fbbf24; color: #1e3a8a; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700;">+</span>
+                    </summary>
+                    <div style="padding: 0 24px 20px; color: #444; line-height: 1.8;">العمولة <strong>2.5% من قيمة العقار</strong> عند البيع (يدفعها البائع عادةً) و<strong>شهر إيجار واحد</strong> عند التأجير. رسوم شفافة، لا رسوم خفية، تُحدّد في العقد مسبقاً.</div>
+                </details>
+
+                <details class="faq-item" style="background: #fff; border-radius: 12px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                    <summary style="padding: 20px 24px; cursor: pointer; font-weight: 700; color: #1e3a8a; font-size: 1.05rem; list-style: none; display: flex; justify-content: space-between; align-items: center;">
+                        <span>هل أنتم مرخّصون رسمياً؟</span>
+                        <span class="faq-icon" style="background: #fbbf24; color: #1e3a8a; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700;">+</span>
+                    </summary>
+                    <div style="padding: 0 24px 20px; color: #444; line-height: 1.8;">نعم، مكتبنا <strong>مرخّص من هيئة العقار السعودية</strong> ومنتسب لبوابة "فال" للوسطاء العقاريين. كل وكلائنا يحملون ترخيص "وسيط عقاري" معتمد.</div>
+                </details>
+
+                <details class="faq-item" style="background: #fff; border-radius: 12px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                    <summary style="padding: 20px 24px; cursor: pointer; font-weight: 700; color: #1e3a8a; font-size: 1.05rem; list-style: none; display: flex; justify-content: space-between; align-items: center;">
+                        <span>كيف أتواصل معكم خارج ساعات العمل؟</span>
+                        <span class="faq-icon" style="background: #fbbf24; color: #1e3a8a; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700;">+</span>
+                    </summary>
+                    <div style="padding: 0 24px 20px; color: #444; line-height: 1.8;">عبر <strong>واتساب</strong> على الرقم 0595305559 متاح 24/7. أو اترك رسالة في صفحة "تواصل معنا" وسنرد عليك في أقل من ساعتين خلال أوقات العمل.</div>
+                </details>
+            </div>
+
+            <div style="text-align: center; margin-top: 32px;">
+                <p style="color: #666; margin: 0 0 16px;">لم تجد إجابتك؟</p>
+                <a href="#contact" style="display: inline-block; background: linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 100%); color: #fff; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-weight: 700;">📞 تواصل معنا مباشرة</a>
             </div>
         </div>
     </section>
+
+    <!-- نتائج بحث Google -->
+    <div id="googleSearchResults" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 9999; overflow-y: auto; padding: 40px 20px;">
+        <div style="max-width: 800px; margin: 0 auto; background: #fff; border-radius: 16px; padding: 32px; position: relative;">
+            <button onclick="document.getElementById('googleSearchResults').style.display='none'" style="position: absolute; top: 16px; left: 16px; background: #f0ebe0; border: none; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; font-size: 1.2rem; color: #1e3a8a; font-weight: 700;">✕</button>
+            <h2 id="searchResultsTitle" style="color: #1e3a8a; margin: 0 0 8px; font-size: 1.5rem;">نتائج البحث</h2>
+            <p id="searchResultsQuery" style="color: #666; margin: 0 0 24px;"></p>
+            <div id="searchResultsContent"></div>
+            <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid #e5e0d5; text-align: center;">
+                <a id="googleFullSearchLink" href="#" target="_blank" rel="noopener" style="display: inline-block; background: #4285f4; color: #fff; padding: 10px 24px; border-radius: 8px; text-decoration: none; font-weight: 700; margin: 0 8px;">🔍 بحث في Google الكامل</a>
+                <button onclick="document.getElementById('googleSearchResults').style.display='none'" style="background: #f0ebe0; color: #1e3a8a; border: none; padding: 10px 24px; border-radius: 8px; font-weight: 700; cursor: pointer; margin: 0 8px;">إغلاق</button>
+            </div>
+        </div>
+    </div>
 
     <!-- قسم تواصل معنا -->
     <section class="contact" id="contact">
@@ -888,9 +1072,9 @@
                     <ul>
                         <li><a href="#home">الرئيسية</a></li>
                         <li><a href="#listings">العقارات</a></li>
+                        <li><a href="#faq">أسئلة شائعة</a></li>
                         <li><a href="#add-property">أضف عقارك</a></li>
                         <li><a href="#request">اطلب عقارك</a></li>
-                        <li><a href="blog.html">المدونة العقارية</a></li>
                     </ul>
                 </div>
                 <div class="footer-col">
