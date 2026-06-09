@@ -329,15 +329,28 @@ const PROPERTY_PURPOSES = {
 // إعدادات التخزين السحابي (GitHub Repository API)
 // ============================================
 // البيانات تُحفظ مباشرة في ملفات JSON في الخزانة
-// تعمل كقاعدة بيانات مجانية ودائمة
+// التوكن يُحفظ في localStorage فقط (لا يُرفع على GitHub)
 const CLOUD_CONFIG = {
     enabled: true,
-    githubToken: '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',
+    githubToken: localStorage.getItem('githubToken') || '',
     repo: 'Mutakola123/adwa',
     branch: 'main',
-    sha_properties: '8e70b6b6311ae2f7191a09dcd1e574a605132310',
-    sha_requests: '0637a088a01e8ddab3bf3fa98dbe804cbde1a0dc'
+    sha_properties: '',
+    sha_requests: ''
 };
+
+// حفظ توكن GitHub (من لوحة التحكم فقط)
+function setGitHubToken(token) {
+    CLOUD_CONFIG.githubToken = token;
+    localStorage.setItem('githubToken', token);
+}
+
+// تحميل التوكن المحفوظ
+function loadGitHubToken() {
+    const stored = localStorage.getItem('githubToken');
+    if (stored) CLOUD_CONFIG.githubToken = stored;
+}
+loadGitHubToken();
 
 // حفظ بيانات في GitHub Repository
 async function saveToCloud(key, data) {

@@ -464,35 +464,26 @@
 
                 <div class="security-grid">
                     <div class="security-card">
-                        <h3><i class="fas fa-cog"></i> إعدادات Cloudinary</h3>
-                        <form class="admin-form" id="cloudinaryConfigForm">
+                        <h3><i class="fab fa-github"></i> إعدادات GitHub (قاعدة البيانات)</h3>
+                        <p style="color: var(--gray-500); font-size: 0.9rem; margin-bottom: 16px;">
+                            البيانات تُحفظ في ملفات JSON في الخزانة مباشرة. يعمل كقاعدة بيانات مجانية.
+                        </p>
+                        <form class="admin-form" id="githubConfigForm">
                             <div class="form-group">
-                                <label>Cloud Name *</label>
-                                <input type="text" name="cloudName" required placeholder="مثال: adwa-realestate">
-                                <small class="form-hint">تجده في لوحة تحكم Cloudinary</small>
-                            </div>
-                            <div class="form-group">
-                                <label>Upload Preset *</label>
-                                <input type="text" name="uploadPreset" required placeholder="مثال: adwa_unsigned">
-                                <small class="form-hint">يجب أن يكون Unsigned للسماح بالرفع من المتصفح</small>
-                            </div>
-                            <div class="form-group">
-                                <label>المجلد (اختياري)</label>
-                                <input type="text" name="folder" placeholder="adwa-properties">
-                                <small class="form-hint">لتنظيم الصور في مجلد محدد</small>
+                                <label>GitHub Personal Access Token *</label>
+                                <input type="password" name="githubToken" placeholder="ghp_xxxxxxxxxxxx" required>
+                                <small class="form-hint">من GitHub Settings → Developer settings → Tokens</small>
                             </div>
                             <div class="form-actions">
-                                <button type="button" class="btn btn-secondary" id="testCloudinaryBtn">
-                                    <i class="fas fa-vial"></i> اختبار الاتصال
-                                </button>
                                 <button type="submit" class="btn btn-primary">
-                                    <i class="fas fa-save"></i> حفظ الإعدادات
+                                    <i class="fas fa-save"></i> حفظ التوكن
                                 </button>
-                                <button type="button" class="btn btn-danger" id="disableCloudinaryBtn" style="display:none;">
-                                    <i class="fas fa-times-circle"></i> تعطيل
+                                <button type="button" class="btn btn-danger" id="clearGithubTokenBtn" style="display:none;">
+                                    <i class="fas fa-times-circle"></i> مسح التوكن
                                 </button>
                             </div>
                         </form>
+                        <div id="githubTokenStatus" style="margin-top: 12px; padding: 10px; border-radius: 8px; display: none;"></div>
                     </div>
 
                     <div class="security-card">
@@ -504,27 +495,56 @@
                             </div>
                             <div class="stat-row">
                                 <span class="stat-row-label">مزود الخدمة:</span>
-                                <span class="stat-row-value" id="statProvider">-</span>
+                                <span class="stat-row-value" id="statProvider">GitHub Repository</span>
                             </div>
                             <div class="stat-row">
-                                <span class="stat-row-label">Cloud Name:</span>
-                                <span class="stat-row-value" id="statCloudName">-</span>
+                                <span class="stat-row-label">الخزانة:</span>
+                                <span class="stat-row-value" id="statCloudName">Mutakola123/adwa</span>
                             </div>
                             <div class="stat-row">
-                                <span class="stat-row-label">مجلد الصور:</span>
-                                <span class="stat-row-value" id="statFolder">-</span>
+                                <span class="stat-row-label">التوكن:</span>
+                                <span class="stat-row-value" id="statTokenStatus">غير محفوظ</span>
                             </div>
                             <div class="stat-row">
-                                <span class="stat-row-label">آخر اختبار:</span>
-                                <span class="stat-row-value" id="statLastTest">لم يتم</span>
+                                <span class="stat-row-label">ملف العقارات:</span>
+                                <span class="stat-row-value" id="statPropsFile">data/properties.json</span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-row-label">ملف الطلبات:</span>
+                                <span class="stat-row-value" id="statReqsFile">data/requests.json</span>
                             </div>
                         </div>
                     </div>
 
                     <div class="security-card full-width-card">
-                        <h3><i class="fas fa-info-circle"></i> كيفية إعداد Cloudinary</h3>
+                        <h3><i class="fas fa-info-circle"></i> كيفية إعداد التخزين السحابي</h3>
                         <ol class="setup-steps">
                             <li>
+                                <span class="step-number">1</span>
+                                <div class="step-content">
+                                    <h4>إنشاء توكن GitHub</h4>
+                                    <p>اذهب إلى <a href="https://github.com/settings/tokens" target="_blank">GitHub Settings → Tokens</a></p>
+                                    <p>اضغط Generate new token (classic)</p>
+                                </div>
+                            </li>
+                            <li>
+                                <span class="step-number">2</span>
+                                <div class="step-content">
+                                    <h4>تحديد الصلاحيات</h4>
+                                    <p>اختر صلاحية <strong>repo</strong> فقط (للوصول للخزانة)</p>
+                                </div>
+                            </li>
+                            <li>
+                                <span class="step-number">3</span>
+                                <div class="step-content">
+                                    <h4>نسخ التوكن</h4>
+                                    <p>انسخ التوكن (يبدأ بـ ghp_) والصقه في الحقل أعلاه</p>
+                                </div>
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+            </section>
                                 <strong>سجّل حساب مجاني</strong> في
                                 <a href="https://cloudinary.com/users/register/free" target="_blank" rel="noopener">cloudinary.com</a>
                             </li>

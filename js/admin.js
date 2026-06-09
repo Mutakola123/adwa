@@ -301,6 +301,9 @@ function setupAdminListeners() {
         setupSingleFileUpload('editMainImageInput', null, 'editMainImageUpload');
         setupGalleryFileUpload('adminGalleryImageInput', null, 'adminGalleryImageUpload');
     }
+
+    // إعداد نموذج GitHub Token
+    setupGitHubConfig();
 }
 
 // تقييم قوة كلمة المرور
@@ -573,6 +576,86 @@ function updateCloudStorageUI() {
         setText('statLastTest', new Date(lastTest).toLocaleString('ar-SA'));
     } else {
         setText('statLastTest', 'لم يتم');
+    }
+
+    // تحديث حالة التوكن
+    const token = localStorage.getItem('githubToken') || '';
+    const tokenStatus = document.getElementById('statTokenStatus');
+    const clearBtn = document.getElementById('clearGithubTokenBtn');
+    const tokenMsg = document.getElementById('githubTokenStatus');
+
+    if (tokenStatus) {
+        tokenStatus.textContent = token ? 'محفوظ ✓' : 'غير محفوظ';
+        tokenStatus.style.color = token ? '#10b981' : '#ef4444';
+    }
+    if (clearBtn) {
+        clearBtn.style.display = token ? 'inline-flex' : 'none';
+    }
+
+    // ملء نموذج التوكن
+    const githubForm = document.getElementById('githubConfigForm');
+    if (githubForm && token) {
+        githubForm.githubToken.value = token;
+    }
+}
+
+// ============================================
+// إعداد نموذج GitHub Token
+// ============================================
+function setupGitHubConfig() {
+    const form = document.getElementById('githubConfigForm');
+    if (!form) return;
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const token = form.githubToken.value.trim();
+        if (!token) return;
+
+        // اختبار التوكن
+        const statusMsg = document.getElementById('githubTokenStatus');
+        statusMsg.style.display = 'block';
+        statusMsg.style.background = '#fef3c7';
+        statusMsg.style.color = '#92400e';
+        statusMsg.textContent = 'جاري اختبار التوكن...';
+
+        try {
+            const res = await fetch('https://api.github.com/user', {
+                headers: { 'Authorization': `token ${token}` }
+            });
+            if (!res.ok) throw new Error('Token invalid');
+            const user = await res.json();
+
+            // حفظ التوكن
+            setGitHubToken(token);
+
+            statusMsg.style.background = '#d1fae5';
+            statusMsg.style.color = '#065f46';
+            statusMsg.textContent = `✓ التوكن صالح - المستخدم: ${user.login}`;
+
+            // اختبار حفظ
+            const saveTest = await saveToCloud('requests', []);
+            if (saveTest) {
+                statusMsg.textContent = `✓一切都好 - المستخدم: ${user.login} - الحفظ يعمل!`;
+            }
+
+            updateCloudStorageUI();
+        } catch (err) {
+            statusMsg.style.background = '#fee2e2';
+            statusMsg.style.color = '#991b1b';
+            statusMsg.textContent = '✗ التوكن غير صالح أو لا يملك صلاحيات';
+        }
+    });
+
+    // زر مسح التوكن
+    const clearBtn = document.getElementById('clearGithubTokenBtn');
+    if (clearBtn) {
+        clearBtn.addEventListener('click', () => {
+            localStorage.removeItem('githubToken');
+            CLOUD_CONFIG.githubToken = '';
+            form.githubToken.value = '';
+            updateCloudStorageUI();
+            showToast('تم المسح', 'تم مسح توكن GitHub', 'success');
+        });
     }
 }
 
