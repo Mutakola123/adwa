@@ -326,66 +326,78 @@ const PROPERTY_PURPOSES = {
 };
 
 // ============================================
-// إعدادات التخزين السحابي (JSONBin.io)
+// إعدادات التخزين السحابي (GitHub Repository API)
 // ============================================
-// للتفعيل: أنشئ حساباً مجانياً على https://jsonbin.io
-// ثم أضف مفتاح API في الأسفل
+// البيانات تُحفظ مباشرة في ملفات JSON في الخزانة
+// تعمل كقاعدة بيانات مجانية ودائمة
 const CLOUD_CONFIG = {
-    enabled: true, // تغيير إلى true عند التفعيل
-    apiKey: '', // أضف مفتاح API من jsonbin.io
-    binId_properties: '', // معرف حاوية العقارات (يُنشأ تلقائياً)
-    binId_requests: '' // معرف حاوية الطلبات (يُنشأ تلقائياً)
+    enabled: true,
+    githubToken: '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',
+    repo: 'Mutakola123/adwa',
+    branch: 'main',
+    sha_properties: '8e70b6b6311ae2f7191a09dcd1e574a605132310',
+    sha_requests: '0637a088a01e8ddab3bf3fa98dbe804cbde1a0dc'
 };
 
-// حفظ بيانات في السحابة
+// حفظ بيانات في GitHub Repository
 async function saveToCloud(key, data) {
-    if (!CLOUD_CONFIG.enabled || !CLOUD_CONFIG.apiKey) return false;
+    if (!CLOUD_CONFIG.enabled || !CLOUD_CONFIG.githubToken) return false;
     try {
-        const binId = CLOUD_CONFIG['binId_' + key];
-        if (!binId) {
-            // إنشاء حاوية جديدة
-            const createRes = await fetch('https://api.jsonbin.io/v3/b', {
-                method: 'POST',
+        const filename = `${key}.json`;
+        const shaKey = `sha_${key}`;
+        const sha = CLOUD_CONFIG[shaKey] || '';
+        const content = btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2))));
+
+        const body = {
+            message: `Update ${filename} - ${new Date().toISOString()}`,
+            content: content,
+            branch: CLOUD_CONFIG.branch
+        };
+        if (sha) body.sha = sha;
+
+        const res = await fetch(
+            `https://api.github.com/repos/${CLOUD_CONFIG.repo}/contents/data/${filename}`,
+            {
+                method: 'PUT',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'X-Master-Key': CLOUD_CONFIG.apiKey
+                    'Authorization': `token ${CLOUD_CONFIG.githubToken}`,
+                    'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(data)
-            });
-            if (!createRes.ok) throw new Error('فشل إنشاء الحاوية');
-            const createData = await createRes.json();
-            CLOUD_CONFIG['binId_' + key] = createData.id;
-            localStorage.setItem('cloudConfig', JSON.stringify(CLOUD_CONFIG));
+                body: JSON.stringify(body)
+            }
+        );
+
+        if (res.ok) {
+            const result = await res.json();
+            CLOUD_CONFIG[shaKey] = result.content.sha;
             return true;
         }
-        // تحديث الحاوية الموجودة
-        const updateRes = await fetch(`https://api.jsonbin.io/v3/b/${binId}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Master-Key': CLOUD_CONFIG.apiKey
-            },
-            body: JSON.stringify(data)
-        });
-        return updateRes.ok;
+        return false;
     } catch (err) {
         console.error('خطأ في الحفظ السحابي:', err);
         return false;
     }
 }
 
-// جلب بيانات من السحابة
+// جلب بيانات من GitHub Repository
 async function loadFromCloud(key) {
-    if (!CLOUD_CONFIG.enabled || !CLOUD_CONFIG.apiKey) return null;
+    if (!CLOUD_CONFIG.enabled || !CLOUD_CONFIG.githubToken) return null;
     try {
-        const binId = CLOUD_CONFIG['binId_' + key];
-        if (!binId) return null;
-        const res = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, {
-            headers: { 'X-Master-Key': CLOUD_CONFIG.apiKey }
-        });
+        const filename = `${key}.json`;
+        const res = await fetch(
+            `https://api.github.com/repos/${CLOUD_CONFIG.repo}/contents/data/${filename}?t=${Date.now()}`,
+            {
+                headers: {
+                    'Authorization': `token ${CLOUD_CONFIG.githubToken}`,
+                    'Cache-Control': 'no-cache'
+                }
+            }
+        );
         if (!res.ok) return null;
-        const data = await res.json();
-        return data.record;
+        const fileData = await res.json();
+        CLOUD_CONFIG[`sha_${key}`] = fileData.sha;
+        const content = decodeURIComponent(escape(atob(fileData.content)));
+        return JSON.parse(content);
     } catch (err) {
         console.error('خطأ في الجلب السحابي:', err);
         return null;
@@ -412,12 +424,36 @@ function saveCloudConfig(config) {
 // إدارة العقارات (محلي + سحابي)
 // ============================================
 
+let _propertiesSynced = false;
+let _requestsSynced = false;
+
+// مزامنة من السحابة
+async function syncFromCloud() {
+    try {
+        const cloudProps = await loadFromCloud('properties');
+        if (cloudProps && Array.isArray(cloudProps)) {
+            localStorage.setItem('properties', JSON.stringify(cloudProps));
+        }
+        const cloudReqs = await loadFromCloud('requests');
+        if (cloudReqs && Array.isArray(cloudReqs)) {
+            localStorage.setItem('propertyRequests', JSON.stringify(cloudReqs));
+        }
+    } catch (err) {
+        console.warn('تعذر المزامنة السحابية:', err);
+    }
+}
+
 // تهيئة البيانات
 async function initializeProperties() {
+    if (!_propertiesSynced) {
+        await syncFromCloud();
+        _propertiesSynced = true;
+    }
     const stored = localStorage.getItem('properties');
     if (!stored) {
         const initial = SAMPLE_PROPERTIES.map(p => ({ ...p, status: 'approved' }));
         localStorage.setItem('properties', JSON.stringify(initial));
+        await saveToCloud('properties', initial);
     }
 }
 
@@ -500,6 +536,13 @@ async function setPropertyStatus(id, status) {
 
 // الحصول على طلبات العملاء
 async function getCustomerRequests() {
+    if (!_requestsSynced) {
+        const cloudReqs = await loadFromCloud('requests');
+        if (cloudReqs && Array.isArray(cloudReqs)) {
+            localStorage.setItem('propertyRequests', JSON.stringify(cloudReqs));
+        }
+        _requestsSynced = true;
+    }
     const stored = localStorage.getItem('propertyRequests');
     return stored ? JSON.parse(stored) : [];
 }
