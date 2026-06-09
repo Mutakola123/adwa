@@ -325,106 +325,204 @@ const PROPERTY_PURPOSES = {
     rent: "للإيجار"
 };
 
+// ============================================
+// إعدادات التخزين السحابي (JSONBin.io)
+// ============================================
+// للتفعيل: أنشئ حساباً مجانياً على https://jsonbin.io
+// ثم أضف مفتاح API في الأسفل
+const CLOUD_CONFIG = {
+    enabled: true, // تغيير إلى true عند التفعيل
+    apiKey: '', // أضف مفتاح API من jsonbin.io
+    binId_properties: '', // معرف حاوية العقارات (يُنشأ تلقائياً)
+    binId_requests: '' // معرف حاوية الطلبات (يُنشأ تلقائياً)
+};
+
+// حفظ بيانات في السحابة
+async function saveToCloud(key, data) {
+    if (!CLOUD_CONFIG.enabled || !CLOUD_CONFIG.apiKey) return false;
+    try {
+        const binId = CLOUD_CONFIG['binId_' + key];
+        if (!binId) {
+            // إنشاء حاوية جديدة
+            const createRes = await fetch('https://api.jsonbin.io/v3/b', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Master-Key': CLOUD_CONFIG.apiKey
+                },
+                body: JSON.stringify(data)
+            });
+            if (!createRes.ok) throw new Error('فشل إنشاء الحاوية');
+            const createData = await createRes.json();
+            CLOUD_CONFIG['binId_' + key] = createData.id;
+            localStorage.setItem('cloudConfig', JSON.stringify(CLOUD_CONFIG));
+            return true;
+        }
+        // تحديث الحاوية الموجودة
+        const updateRes = await fetch(`https://api.jsonbin.io/v3/b/${binId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Master-Key': CLOUD_CONFIG.apiKey
+            },
+            body: JSON.stringify(data)
+        });
+        return updateRes.ok;
+    } catch (err) {
+        console.error('خطأ في الحفظ السحابي:', err);
+        return false;
+    }
+}
+
+// جلب بيانات من السحابة
+async function loadFromCloud(key) {
+    if (!CLOUD_CONFIG.enabled || !CLOUD_CONFIG.apiKey) return null;
+    try {
+        const binId = CLOUD_CONFIG['binId_' + key];
+        if (!binId) return null;
+        const res = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, {
+            headers: { 'X-Master-Key': CLOUD_CONFIG.apiKey }
+        });
+        if (!res.ok) return null;
+        const data = await res.json();
+        return data.record;
+    } catch (err) {
+        console.error('خطأ في الجلب السحابي:', err);
+        return null;
+    }
+}
+
+// تحميل الإعدادات السحابية من localStorage
+function loadCloudConfig() {
+    const stored = localStorage.getItem('cloudConfig');
+    if (stored) {
+        const config = JSON.parse(stored);
+        Object.assign(CLOUD_CONFIG, config);
+    }
+}
+loadCloudConfig();
+
+// حفظ الإعدادات السحابية
+function saveCloudConfig(config) {
+    Object.assign(CLOUD_CONFIG, config);
+    localStorage.setItem('cloudConfig', JSON.stringify(CLOUD_CONFIG));
+}
+
+// ============================================
+// إدارة العقارات (محلي + سحابي)
+// ============================================
+
 // تهيئة البيانات
-function initializeProperties() {
+async function initializeProperties() {
     const stored = localStorage.getItem('properties');
     if (!stored) {
-        // إضافة status: 'approved' لجميع العقارات النموذجية
         const initial = SAMPLE_PROPERTIES.map(p => ({ ...p, status: 'approved' }));
         localStorage.setItem('properties', JSON.stringify(initial));
     }
 }
 
 // الحصول على جميع العقارات
-function getAllProperties() {
-    initializeProperties();
+async function getAllProperties() {
+    await initializeProperties();
     const stored = localStorage.getItem('properties');
     return stored ? JSON.parse(stored) : [];
 }
 
 // الحصول على العقارات المعتمدة فقط (لعرضها للزوار)
-function getApprovedProperties() {
-    return getAllProperties().filter(p => p.status === 'approved');
+async function getApprovedProperties() {
+    const all = await getAllProperties();
+    return all.filter(p => p.status === 'approved');
 }
 
 // الحصول على عقار بالمعرف
-function getPropertyById(id) {
-    const properties = getAllProperties();
+async function getPropertyById(id) {
+    const properties = await getAllProperties();
     return properties.find(p => p.id === parseInt(id));
 }
 
 // إضافة عقار جديد (كمعلق - يحتاج موافقة الإدارة)
-function addProperty(property) {
-    const properties = getAllProperties();
+async function addProperty(property) {
+    const properties = await getAllProperties();
     const newId = properties.length > 0 ? Math.max(...properties.map(p => p.id)) + 1 : 1;
     property.id = newId;
     property.createdAt = new Date().toISOString().split('T')[0];
-    property.status = 'pending'; // العقارات الجديدة تكون معلقة افتراضياً
+    property.status = 'pending';
     properties.push(property);
     localStorage.setItem('properties', JSON.stringify(properties));
+    // حفظ في السحابة أيضاً
+    await saveToCloud('properties', properties);
     return property;
 }
 
 // إضافة عقار معتمد مباشرة (للمشرف)
-function addApprovedProperty(property) {
-    const properties = getAllProperties();
+async function addApprovedProperty(property) {
+    const properties = await getAllProperties();
     const newId = properties.length > 0 ? Math.max(...properties.map(p => p.id)) + 1 : 1;
     property.id = newId;
     property.createdAt = new Date().toISOString().split('T')[0];
     property.status = 'approved';
     properties.push(property);
     localStorage.setItem('properties', JSON.stringify(properties));
+    await saveToCloud('properties', properties);
     return property;
 }
 
 // تحديث عقار
-function updateProperty(id, updates) {
-    const properties = getAllProperties();
+async function updateProperty(id, updates) {
+    const properties = await getAllProperties();
     const index = properties.findIndex(p => p.id === parseInt(id));
     if (index > -1) {
         properties[index] = { ...properties[index], ...updates };
         localStorage.setItem('properties', JSON.stringify(properties));
+        await saveToCloud('properties', properties);
         return properties[index];
     }
     return null;
 }
 
 // حذف عقار
-function deleteProperty(id) {
-    const properties = getAllProperties();
+async function deleteProperty(id) {
+    const properties = await getAllProperties();
     const filtered = properties.filter(p => p.id !== parseInt(id));
     localStorage.setItem('properties', JSON.stringify(filtered));
+    await saveToCloud('properties', filtered);
     return true;
 }
 
 // تغيير حالة عقار (موافقة/رفض)
-function setPropertyStatus(id, status) {
-    return updateProperty(id, { status });
+async function setPropertyStatus(id, status) {
+    return await updateProperty(id, { status });
 }
 
+// ============================================
+// إدارة طلبات العملاء (محلي + سحابي)
+// ============================================
+
 // الحصول على طلبات العملاء
-function getCustomerRequests() {
+async function getCustomerRequests() {
     const stored = localStorage.getItem('propertyRequests');
     return stored ? JSON.parse(stored) : [];
 }
 
 // تحديث حالة طلب
-function updateRequestStatus(id, status) {
-    const requests = getCustomerRequests();
+async function updateRequestStatus(id, status) {
+    const requests = await getCustomerRequests();
     const index = requests.findIndex(r => r.id === parseInt(id));
     if (index > -1) {
         requests[index].status = status;
         localStorage.setItem('propertyRequests', JSON.stringify(requests));
+        await saveToCloud('requests', requests);
         return requests[index];
     }
     return null;
 }
 
 // حذف طلب
-function deleteRequest(id) {
-    const requests = getCustomerRequests();
+async function deleteRequest(id) {
+    const requests = await getCustomerRequests();
     const filtered = requests.filter(r => r.id !== parseInt(id));
-    localStorage.setItem('propertyRequests', JSON.stringify(requests));
+    localStorage.setItem('propertyRequests', JSON.stringify(filtered));
+    await saveToCloud('requests', filtered);
     return true;
 }
 

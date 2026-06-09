@@ -605,10 +605,10 @@ function switchView(view) {
     document.querySelector('.admin-sidebar').classList.remove('active');
 
     // تحديث البيانات
-    if (view === 'dashboard') renderDashboard();
-    if (view === 'properties') renderPropertiesTable();
-    if (view === 'pending') renderPending();
-    if (view === 'requests') renderRequests();
+    if (view === 'dashboard') await renderDashboard();
+    if (view === 'properties') await renderPropertiesTable();
+    if (view === 'pending') await renderPending();
+    if (view === 'requests') await renderRequests();
     if (view === 'security') updateSessionInfo();
     if (view === 'cloud') updateCloudStorageUI();
 }
@@ -616,19 +616,19 @@ function switchView(view) {
 // ============================================
 // تحديث البيانات
 // ============================================
-function refreshAll() {
-    updateCounts();
-    renderDashboard();
-    renderPropertiesTable();
-    renderPending();
-    renderRequests();
+async function refreshAll() {
+    await updateCounts();
+    await renderDashboard();
+    await renderPropertiesTable();
+    await renderPending();
+    await renderRequests();
 }
 
-function updateCounts() {
-    const all = getAllProperties();
+async function updateCounts() {
+    const all = await getAllProperties();
     const approved = all.filter(p => p.status === 'approved');
     const pending = all.filter(p => p.status === 'pending');
-    const requests = getCustomerRequests();
+    const requests = await getCustomerRequests();
 
     document.getElementById('propertiesCount').textContent = all.length;
     document.getElementById('pendingCount').textContent = pending.length;
@@ -638,11 +638,11 @@ function updateCounts() {
 // ============================================
 // لوحة الإحصائيات
 // ============================================
-function renderDashboard() {
-    const all = getAllProperties();
+async function renderDashboard() {
+    const all = await getAllProperties();
     const approved = all.filter(p => p.status === 'approved');
     const pending = all.filter(p => p.status === 'pending');
-    const requests = getCustomerRequests();
+    const requests = await getCustomerRequests();
     const sale = all.filter(p => p.purpose === 'sale');
     const rent = all.filter(p => p.purpose === 'rent');
 
@@ -721,11 +721,11 @@ function renderRecentList(recent) {
 // ============================================
 // جدول العقارات
 // ============================================
-function renderPropertiesTable() {
+async function renderPropertiesTable() {
     const tbody = document.getElementById('propertiesTableBody');
     if (!tbody) return;
 
-    let properties = getAllProperties();
+    let properties = await getAllProperties();
 
     const search = document.getElementById('propertiesSearch')?.value.trim().toLowerCase() || '';
     const filter = document.getElementById('propertiesFilter')?.value || 'all';
@@ -784,12 +784,13 @@ function renderPropertiesTable() {
 // ============================================
 // العقارات المعلقة
 // ============================================
-function renderPending() {
+async function renderPending() {
     const grid = document.getElementById('pendingGrid');
     const empty = document.getElementById('pendingEmpty');
     if (!grid) return;
 
-    const pending = getAllProperties().filter(p => p.status === 'pending');
+    const all = await getAllProperties();
+    const pending = all.filter(p => p.status === 'pending');
 
     if (pending.length === 0) {
         grid.style.display = 'none';
@@ -837,12 +838,13 @@ function renderPending() {
 // ============================================
 // طلبات العملاء
 // ============================================
-function renderRequests() {
+async function renderRequests() {
     const list = document.getElementById('requestsList');
     const empty = document.getElementById('requestsEmpty');
     if (!list) return;
 
-    const requests = getCustomerRequests().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    const allRequests = await getCustomerRequests();
+    const requests = allRequests.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
     if (requests.length === 0) {
         list.style.display = 'none';
@@ -908,14 +910,14 @@ function getRequestStatusText(status) {
 // ============================================
 // العمليات على العقارات
 // ============================================
-window.approveProperty = function(id) {
-    setPropertyStatus(id, 'approved');
+window.approveProperty = async function(id) {
+    await setPropertyStatus(id, 'approved');
     showToast('تمت الموافقة', 'تم نشر العقار بنجاح', 'success');
-    refreshAll();
+    await refreshAll();
 };
 
-window.openEditModal = function(id) {
-    const property = getPropertyById(id);
+window.openEditModal = async function(id) {
+    const property = await getPropertyById(id);
     if (!property) {
         showToast('خطأ', 'لم يتم العثور على العقار', 'error');
         return;
@@ -945,7 +947,7 @@ function closeEditModal() {
     document.getElementById('editModal').classList.remove('active');
 }
 
-function handleEditSubmit(e) {
+async function handleEditSubmit(e) {
     e.preventDefault();
     const form = e.target;
     const formData = new FormData(form);
@@ -969,7 +971,7 @@ function handleEditSubmit(e) {
 
     // الحصول على الصورة الجديدة إن وُجدت
     const imageData = form.querySelector('[name="imageData"]').value;
-    const existingProperty = getPropertyById(id);
+    const existingProperty = await getPropertyById(id);
     const finalImage = imageData || (existingProperty ? existingProperty.image : DEFAULT_IMAGE);
 
     const updates = {
@@ -990,33 +992,33 @@ function handleEditSubmit(e) {
         priceUnit: formData.get('purpose') === 'rent' ? 'شهرياً' : ''
     };
 
-    const result = updateProperty(id, updates);
+    const result = await updateProperty(id, updates);
     if (result) {
         closeEditModal();
         showToast('تم التحديث', 'تم حفظ التغييرات بنجاح', 'success');
-        refreshAll();
+        await refreshAll();
     } else {
         showToast('خطأ', 'فشل حفظ التغييرات. يرجى المحاولة مرة أخرى', 'error');
     }
 }
 
-window.viewProperty = function(id) {
-    const property = getPropertyById(id);
+window.viewProperty = async function(id) {
+    const property = await getPropertyById(id);
     if (!property) return;
     // تخزين العقار المختار وعرضه
     sessionStorage.setItem('previewProperty', JSON.stringify(property));
     window.open(`index.html?preview=${id}`, '_blank');
 };
 
-window.confirmDeleteProperty = function(id) {
-    const property = getPropertyById(id);
+window.confirmDeleteProperty = async function(id) {
+    const property = await getPropertyById(id);
     showConfirm(
         'حذف العقار',
         `هل أنت متأكد من حذف "${property.title}"؟ لا يمكن التراجع عن هذا الإجراء.`,
-        () => {
-            deleteProperty(id);
+        async () => {
+            await deleteProperty(id);
             showToast('تم الحذف', 'تم حذف العقار بنجاح', 'success');
-            refreshAll();
+            await refreshAll();
         }
     );
 };
@@ -1024,7 +1026,7 @@ window.confirmDeleteProperty = function(id) {
 // ============================================
 // إضافة عقار جديد (للمشرف)
 // ============================================
-function handleAdminAdd(e) {
+async function handleAdminAdd(e) {
     e.preventDefault();
     const form = e.target;
     const formData = new FormData(form);
@@ -1080,36 +1082,36 @@ function handleAdminAdd(e) {
         priceUnit: purpose === 'rent' ? 'شهرياً' : ''
     };
 
-    addApprovedProperty(newProperty);
+    await addApprovedProperty(newProperty);
     showToast('تمت الإضافة', 'تم نشر العقار بنجاح', 'success');
     e.target.reset();
     if (typeof resetImageUploads === 'function') {
         resetImageUploads('adminMainImageUpload');
         resetImageUploads('adminGalleryImageUpload');
     }
-    refreshAll();
+    await refreshAll();
     switchView('properties');
 }
 
 // ============================================
 // عمليات الطلبات
 // ============================================
-window.setRequestStatus = function(id, status) {
-    updateRequestStatus(id, status);
+window.setRequestStatus = async function(id, status) {
+    await updateRequestStatus(id, status);
     showToast('تم التحديث', 'تم تحديث حالة الطلب', 'success');
-    renderRequests();
-    updateCounts();
+    await renderRequests();
+    await updateCounts();
 };
 
 window.confirmDeleteRequest = function(id) {
     showConfirm(
         'حذف الطلب',
         'هل أنت متأكد من حذف هذا الطلب؟',
-        () => {
-            deleteRequest(id);
+        async () => {
+            await deleteRequest(id);
             showToast('تم الحذف', 'تم حذف الطلب', 'success');
-            renderRequests();
-            updateCounts();
+            await renderRequests();
+            await updateCounts();
         }
     );
 };

@@ -23,8 +23,8 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeApp();
 });
 
-function initializeApp() {
-    loadProperties();
+async function initializeApp() {
+    await loadProperties();
     setupNavigation();
     setupSearch();
     setupFilters();
@@ -41,8 +41,8 @@ function initializeApp() {
 // ============================================
 // تحميل وعرض العقارات
 // ============================================
-function loadProperties() {
-    allProperties = getApprovedProperties();
+async function loadProperties() {
+    allProperties = await getApprovedProperties();
     applyFilters();
 }
 
@@ -380,8 +380,8 @@ function setupModal() {
     });
 }
 
-function openPropertyModal(id) {
-    const property = getPropertyById(id);
+async function openPropertyModal(id) {
+    const property = await getPropertyById(id);
     if (!property) return;
 
     currentModalProperty = property;
@@ -581,7 +581,7 @@ function setupForms() {
     }
 }
 
-function handleAddProperty(e) {
+async function handleAddProperty(e) {
     e.preventDefault();
     const form = e.target;
     const formData = new FormData(form);
@@ -636,7 +636,7 @@ function handleAddProperty(e) {
         priceUnit: purpose === 'rent' ? 'شهرياً' : ''
     };
 
-    addProperty(newProperty);
+    await addProperty(newProperty);
 
     showToast('تم استلام طلبك', 'سيتم مراجعة العقار من قبل الإدارة ونشره قريباً', 'success');
     e.target.reset();
@@ -649,7 +649,7 @@ function handleAddProperty(e) {
     }, 500);
 }
 
-function handleRequestProperty(e) {
+async function handleRequestProperty(e) {
     e.preventDefault();
     const formData = new FormData(e.target);
 
@@ -666,10 +666,11 @@ function handleRequestProperty(e) {
         createdAt: new Date().toISOString()
     };
 
-    // حفظ الطلب في localStorage
+    // حفظ الطلب في localStorage + السحابة
     const requests = JSON.parse(localStorage.getItem('propertyRequests') || '[]');
     requests.push(request);
     localStorage.setItem('propertyRequests', JSON.stringify(requests));
+    await saveToCloud('requests', requests);
 
     showToast('تم إرسال طلبك', 'سنتواصل معك في أقرب وقت ممكن', 'success');
     e.target.reset();
