@@ -665,7 +665,7 @@ function setupGitHubConfig() {
 // ============================================
 // التنقل بين الأقسام
 // ============================================
-function switchView(view) {
+async function switchView(view) {
     currentView = view;
     document.querySelectorAll('.admin-view').forEach(v => v.style.display = 'none');
     document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
