@@ -10,15 +10,15 @@ let captchaAnswer = 0;
 let activityTimer = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
+    generateCaptcha();
+    setupLoginForm();
+    setupAdminListeners();
     try {
         await initializeSecurity();
     } catch (err) {
         console.error('خطأ في تهيئة النظام الأمني:', err);
     }
     checkAuth();
-    generateCaptcha();
-    setupLoginForm();
-    setupAdminListeners();
     startActivityTracking();
 });
 
