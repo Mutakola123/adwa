@@ -666,8 +666,7 @@ async function handleRequestProperty(e) {
         createdAt: new Date().toISOString()
     };
 
-    // حفظ الطلب في localStorage + السحابة
-    const requests = JSON.parse(localStorage.getItem('propertyRequests') || '[]');
+    const requests = await getCustomerRequests();
     requests.push(request);
     localStorage.setItem('propertyRequests', JSON.stringify(requests));
     await saveToCloud('requests', requests);

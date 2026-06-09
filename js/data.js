@@ -444,11 +444,11 @@ let _requestsSynced = false;
 async function syncFromCloud() {
     try {
         const cloudProps = await loadFromCloud('properties');
-        if (cloudProps && Array.isArray(cloudProps)) {
+        if (cloudProps && Array.isArray(cloudProps) && cloudProps.length > 0) {
             localStorage.setItem('properties', JSON.stringify(cloudProps));
         }
         const cloudReqs = await loadFromCloud('requests');
-        if (cloudReqs && Array.isArray(cloudReqs)) {
+        if (cloudReqs && Array.isArray(cloudReqs) && cloudReqs.length > 0) {
             localStorage.setItem('propertyRequests', JSON.stringify(cloudReqs));
         }
     } catch (err) {
@@ -551,7 +551,7 @@ async function setPropertyStatus(id, status) {
 async function getCustomerRequests() {
     if (!_requestsSynced) {
         const cloudReqs = await loadFromCloud('requests');
-        if (cloudReqs && Array.isArray(cloudReqs)) {
+        if (cloudReqs && Array.isArray(cloudReqs) && cloudReqs.length > 0) {
             localStorage.setItem('propertyRequests', JSON.stringify(cloudReqs));
         }
         _requestsSynced = true;
