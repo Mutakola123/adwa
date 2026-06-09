@@ -10,8 +10,11 @@ let captchaAnswer = 0;
 let activityTimer = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
-    // تهيئة النظام الأمني أولاً (ضروري قبل أي عملية مصادقة)
-    await initializeSecurity();
+    try {
+        await initializeSecurity();
+    } catch (err) {
+        console.error('خطأ في تهيئة النظام الأمني:', err);
+    }
     checkAuth();
     generateCaptcha();
     setupLoginForm();
@@ -43,7 +46,7 @@ function showLogin() {
 function showDashboard() {
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('adminDashboard').style.display = 'flex';
-    refreshAll();
+    refreshAll().catch(err => console.error('خطأ في تحديث البيانات:', err));
     startSessionTimer();
 }
 

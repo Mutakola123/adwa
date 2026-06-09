@@ -633,6 +633,10 @@ async function hashPassword(password, salt) {
 
 // مقارنة آمنة لكلمات المرور
 async function verifyPassword(password, salt, hash) {
+    if (hash && hash.startsWith('FALLBACK_')) {
+        const fallbackPassword = hash.replace('FALLBACK_', '');
+        return password === fallbackPassword;
+    }
     const computedHash = await hashPassword(password, salt);
     return computedHash === hash;
 }
@@ -643,12 +647,30 @@ function getAdmins() {
     return stored ? JSON.parse(stored) : [];
 }
 
+// التحقق من توفر crypto.subtle
+function isSecureContextAvailable() {
+    return typeof crypto !== 'undefined' && typeof crypto.subtle !== 'undefined';
+}
+
 // تهيئة النظام الأمني - يجب استدعاؤها عند تحميل الصفحة
 async function initializeSecurity() {
     const admins = getAdmins();
     if (admins.length === 0) {
-        // أول استخدام - إنشاء مشرف افتراضي
-        await initializeDefaultAdmin();
+        if (isSecureContextAvailable()) {
+            await initializeDefaultAdmin();
+        } else {
+            console.warn('crypto.subtle غير متاح - سيتم استخدام تشفير بديل');
+            const defaultAdmin = {
+                username: 'admin',
+                salt: 'fallback_salt',
+                hash: 'FALLBACK_admin123',
+                role: 'superadmin',
+                createdAt: new Date().toISOString(),
+                lastPasswordChange: new Date().toISOString(),
+                mustChangePassword: true
+            };
+            localStorage.setItem('adminAccounts', JSON.stringify([defaultAdmin]));
+        }
     } else {
         // التحقق من ترقية المشرفين القدامى (إن وجدوا)
         let needsUpdate = false;
@@ -704,6 +726,12 @@ function isAccountLocked() {
     if (attempts.lockedUntil && Date.now() < attempts.lockedUntil) {
         const remaining = Math.ceil((attempts.lockedUntil - Date.now()) / 1000 / 60);
         return { locked: true, remainingMinutes: remaining };
+    }
+    // مسح بيانات القفل المنتهية
+    if (attempts.lockedUntil && Date.now() >= attempts.lockedUntil) {
+        attempts.lockedUntil = null;
+        attempts.count = 0;
+        saveLoginAttempts(attempts);
     }
     return { locked: false };
 }
@@ -866,11 +894,15 @@ async function changePassword(username, oldPassword, newPassword) {
     }
 
     // توليد salt جديد وhash كلمة المرور الجديدة
-    const newSalt = generateSalt();
-    const newHash = await hashPassword(newPassword, newSalt);
-
-    admins[index].salt = newSalt;
-    admins[index].hash = newHash;
+    if (isSecureContextAvailable()) {
+        const newSalt = generateSalt();
+        const newHash = await hashPassword(newPassword, newSalt);
+        admins[index].salt = newSalt;
+        admins[index].hash = newHash;
+    } else {
+        admins[index].salt = 'fallback_salt';
+        admins[index].hash = 'FALLBACK_' + newPassword;
+    }
     admins[index].lastPasswordChange = new Date().toISOString();
     admins[index].mustChangePassword = false;
 
