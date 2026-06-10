@@ -24,18 +24,22 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function initializeApp() {
-    await loadProperties();
+    setupForms();
+    setupFileUploads();
     setupNavigation();
     setupSearch();
     setupFilters();
-    setupForms();
-    setupFileUploads();
     setupModal();
     setupScrollEffects();
     setupAnimations();
     setupCounters();
     setupGallery();
     setupFilterToggle();
+    try {
+        await loadProperties();
+    } catch (err) {
+        console.error('خطأ في تحميل العقارات:', err);
+    }
 }
 
 // ============================================
@@ -666,13 +670,17 @@ async function handleRequestProperty(e) {
         createdAt: new Date().toISOString()
     };
 
-    const requests = await getCustomerRequests();
-    requests.push(request);
-    localStorage.setItem('propertyRequests', JSON.stringify(requests));
-    await saveToCloud('requests', requests);
-
-    showToast('تم إرسال طلبك', 'سنتواصل معك في أقرب وقت ممكن', 'success');
-    e.target.reset();
+    try {
+        const localData = JSON.parse(localStorage.getItem('propertyRequests') || '[]');
+        localData.push(request);
+        localStorage.setItem('propertyRequests', JSON.stringify(localData));
+        await saveToCloud('requests', localData).catch(() => {});
+        showToast('تم إرسال طلبك', 'سنتواصل معك في أقرب وقت ممكن', 'success');
+        e.target.reset();
+    } catch (err) {
+        console.error('خطأ:', err);
+        showToast('خطأ', 'حدث خطأ أثناء إرسال الطلب', 'error');
+    }
 }
 
 // ============================================

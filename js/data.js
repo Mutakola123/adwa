@@ -445,7 +445,6 @@ loadCloudConfig();
 // ============================================
 
 let _propertiesSynced = false;
-let _requestsSynced = false;
 
 // مزامنة من السحابة
 async function syncFromCloud() {
@@ -556,13 +555,6 @@ async function setPropertyStatus(id, status) {
 
 // الحصول على طلبات العملاء
 async function getCustomerRequests() {
-    if (!_requestsSynced) {
-        const cloudReqs = await loadFromCloud('requests');
-        if (cloudReqs && Array.isArray(cloudReqs) && cloudReqs.length > 0) {
-            localStorage.setItem('propertyRequests', JSON.stringify(cloudReqs));
-        }
-        _requestsSynced = true;
-    }
     const stored = localStorage.getItem('propertyRequests');
     return stored ? JSON.parse(stored) : [];
 }
