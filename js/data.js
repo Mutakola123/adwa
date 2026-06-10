@@ -358,7 +358,23 @@ async function saveToCloud(key, data) {
     try {
         const filename = `${key}.json`;
         const shaKey = `sha_${key}`;
-        const sha = CLOUD_CONFIG[shaKey] || '';
+        let sha = CLOUD_CONFIG[shaKey] || '';
+
+        // جلب الـ SHA الحالي إذا لم يكن محفوظاً
+        if (!sha) {
+            try {
+                const headRes = await fetch(
+                    `https://api.github.com/repos/${CLOUD_CONFIG.repo}/contents/data/${filename}`,
+                    { headers: { 'Authorization': `token ${CLOUD_CONFIG.githubToken}` } }
+                );
+                if (headRes.ok) {
+                    const headData = await headRes.json();
+                    sha = headData.sha;
+                    CLOUD_CONFIG[shaKey] = sha;
+                }
+            } catch (e) { /* ملف جديد */ }
+        }
+
         const content = btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2))));
 
         const body = {
@@ -417,21 +433,12 @@ async function loadFromCloud(key) {
     }
 }
 
-// تحميل الإعدادات السحابية من localStorage
+// تحميل التوكن فقط من localStorage
 function loadCloudConfig() {
-    const stored = localStorage.getItem('cloudConfig');
-    if (stored) {
-        const config = JSON.parse(stored);
-        Object.assign(CLOUD_CONFIG, config);
-    }
+    const token = localStorage.getItem('githubToken');
+    if (token) CLOUD_CONFIG.githubToken = token;
 }
 loadCloudConfig();
-
-// حفظ الإعدادات السحابية
-function saveCloudConfig(config) {
-    Object.assign(CLOUD_CONFIG, config);
-    localStorage.setItem('cloudConfig', JSON.stringify(CLOUD_CONFIG));
-}
 
 // ============================================
 // إدارة العقارات (محلي + سحابي)
@@ -968,7 +975,6 @@ function formatNumber(num) {
 
 // الصورة الافتراضية للعقارات التي لا تحتوي على صورة
 const DEFAULT_IMAGE = 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800';
-const DEFAULT_GALLERY_IMAGE = 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=1200';
 
 // إعدادات معالجة الصور المرفوعة
 const IMAGE_CONFIG = {
@@ -1249,10 +1255,4 @@ function formatFileSize(bytes) {
     return (bytes / 1024 / 1024).toFixed(2) + ' MB';
 }
 
-// تنسيق السعر
-function formatPrice(price, unit) {
-    if (unit === 'شهرياً') {
-        return `${formatNumber(price)} <small>ر.س / شهرياً</small>`;
-    }
-    return `${formatNumber(price)} <small>ر.س</small>`;
-}
+
