@@ -446,16 +446,12 @@ loadCloudConfig();
 
 let _propertiesSynced = false;
 
-// مزامنة من السحابة
+// مزامنة من السحابة - فقط للعقارات (لا نمسح الطلبات المحلية)
 async function syncFromCloud() {
     try {
         const cloudProps = await loadFromCloud('properties');
         if (cloudProps && Array.isArray(cloudProps) && cloudProps.length > 0) {
             localStorage.setItem('properties', JSON.stringify(cloudProps));
-        }
-        const cloudReqs = await loadFromCloud('requests');
-        if (cloudReqs && Array.isArray(cloudReqs) && cloudReqs.length > 0) {
-            localStorage.setItem('propertyRequests', JSON.stringify(cloudReqs));
         }
     } catch (err) {
         console.warn('تعذر المزامنة السحابية:', err);

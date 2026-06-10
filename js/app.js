@@ -667,6 +667,7 @@ async function handleRequestProperty(e) {
         location: formData.get('location'),
         budget: formData.get('budget'),
         details: formData.get('details'),
+        status: 'new',
         createdAt: new Date().toISOString()
     };
 

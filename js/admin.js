@@ -43,10 +43,10 @@ function showLogin() {
     updateAttemptsWarning();
 }
 
-function showDashboard() {
+async function showDashboard() {
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('adminDashboard').style.display = 'flex';
-    refreshAll().catch(err => console.error('خطأ في تحديث البيانات:', err));
+    await refreshAll().catch(err => console.error('خطأ في تحديث البيانات:', err));
     startSessionTimer();
 }
 
@@ -1252,3 +1252,20 @@ function showToast(title, message, type = 'success') {
         setTimeout(() => toast.remove(), 300);
     }, 4000);
 }
+
+// تشخيص طلبات العملاء
+window.testRequestsDebug = function() {
+    const el = document.getElementById('debugRequestsInfo');
+    if (!el) return;
+    const raw = localStorage.getItem('propertyRequests');
+    const parsed = raw ? JSON.parse(raw) : [];
+    el.style.display = 'block';
+    el.textContent = [
+        `localStorage key: propertyRequests`,
+        `Raw length: ${raw ? raw.length : 0}`,
+        `Parsed count: ${parsed.length}`,
+        `Token exists: ${!!localStorage.getItem('githubToken')}`,
+        `Cloud enabled: ${typeof CLOUD_CONFIG !== 'undefined' ? CLOUD_CONFIG.enabled : 'N/A'}`,
+        parsed.length > 0 ? `Last request: ${JSON.stringify(parsed[parsed.length - 1], null, 2)}` : 'No requests found',
+    ].join('\n');
+};
