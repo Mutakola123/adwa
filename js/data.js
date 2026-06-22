@@ -552,12 +552,23 @@ async function setPropertyStatus(id, status) {
 // إدارة طلبات العملاء (محلي + سحابي)
 // ============================================
 
-// الحصول على طلبات العملاء
+// الحصول على طلبات العملاء (يقرأ من السحابة أولاً إذا كان التوكن متاحاً)
 async function getCustomerRequests() {
+    // محاولة القراءة من السحابة أولاً
+    if (CLOUD_CONFIG.enabled && CLOUD_CONFIG.githubToken) {
+        try {
+            const cloudData = await loadFromCloud('requests');
+            if (cloudData && Array.isArray(cloudData)) {
+                localStorage.setItem('propertyRequests', JSON.stringify(cloudData));
+                return cloudData;
+            }
+        } catch (e) {
+            console.warn('تعذر القراءة من السحابة، القراءة من التخزين المحلي:', e);
+        }
+    }
+    // fallback للتخزين المحلي
     const stored = localStorage.getItem('propertyRequests');
-    const parsed = stored ? JSON.parse(stored) : [];
-    console.log('[DEBUG] getCustomerRequests:', parsed.length, 'items, raw length:', stored ? stored.length : 0);
-    return parsed;
+    return stored ? JSON.parse(stored) : [];
 }
 
 // تحديث حالة طلب
@@ -567,7 +578,7 @@ async function updateRequestStatus(id, status) {
     if (index > -1) {
         requests[index].status = status;
         localStorage.setItem('propertyRequests', JSON.stringify(requests));
-        saveToCloud('requests', requests).catch(() => {});
+        await saveToCloud('requests', requests).catch(() => {});
         return requests[index];
     }
     return null;
@@ -578,7 +589,7 @@ async function deleteRequest(id) {
     const requests = await getCustomerRequests();
     const filtered = requests.filter(r => r.id !== parseInt(id));
     localStorage.setItem('propertyRequests', JSON.stringify(filtered));
-    saveToCloud('requests', filtered).catch(() => {});
+    await saveToCloud('requests', filtered).catch(() => {});
     return true;
 }
 
