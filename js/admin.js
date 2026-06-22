@@ -927,7 +927,6 @@ async function renderPending() {
 async function renderRequests() {
     const list = document.getElementById('requestsList');
     const empty = document.getElementById('requestsEmpty');
-    const debugBar = document.getElementById('requestsDebugBar');
     if (!list) return;
 
     let allRequests = [];
@@ -937,12 +936,6 @@ async function renderRequests() {
         console.error('خطأ في تحميل الطلبات:', err);
     }
     const requests = allRequests.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-
-    // Debug bar
-    if (debugBar) {
-        const rawLen = (localStorage.getItem('propertyRequests') || '').length;
-        debugBar.textContent = 'localStorage propertyRequests: raw=' + rawLen + ' bytes, parsed=' + allRequests.length + ' items, timestamp=' + new Date().toLocaleTimeString();
-    }
 
     if (requests.length === 0) {
         list.style.display = 'none';

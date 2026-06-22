@@ -675,10 +675,8 @@ async function handleRequestProperty(e) {
         const localData = JSON.parse(localStorage.getItem('propertyRequests') || '[]');
         localData.push(request);
         localStorage.setItem('propertyRequests', JSON.stringify(localData));
-        const saved = localStorage.getItem('propertyRequests');
-        const savedLen = saved ? saved.length : 0;
         try { saveToCloud('requests', localData); } catch(e) {}
-        showToast('تم إرسال طلبك', 'سنتواصل معك في أقرب وقت ممكن (' + localData.length + ' طلبات محفوظة) | bytes=' + savedLen, 'success');
+        showToast('تم إرسال طلبك', 'سنتواصل معك في أقرب وقت ممكن', 'success');
         e.target.reset();
     } catch (err) {
         showToast('خطأ', 'حدث خطأ أثناء إرسال الطلب: ' + err.message, 'error');
