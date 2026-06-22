@@ -675,8 +675,8 @@ async function handleRequestProperty(e) {
         const localData = await getCustomerRequests();
         localData.push(request);
         localStorage.setItem('propertyRequests', JSON.stringify(localData));
-        await saveToCloud('requests', localData).catch(() => {});
-        showToast('تم إرسال طلبك', 'سنتواصل معك في أقرب وقت ممكن', 'success');
+        const cloudResult = await saveToCloud('requests', localData).catch(() => false);
+        showToast('تم إرسال طلبك', 'سنتواصل معك في أقرب وقت ممكن' + (cloudResult !== false ? '' : ' (محلي فقط - تحقق من التوكن)'), 'success');
         e.target.reset();
     } catch (err) {
         showToast('خطأ', 'حدث خطأ أثناء إرسال الطلب: ' + err.message, 'error');

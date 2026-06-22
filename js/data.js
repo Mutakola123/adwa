@@ -332,7 +332,7 @@ const PROPERTY_PURPOSES = {
 // التوكن يُحفظ في localStorage فقط (لا يُرفع على GitHub)
 const CLOUD_CONFIG = {
     enabled: true,
-    githubToken: localStorage.getItem('githubToken') || '',
+    githubToken: '',
     repo: 'Mutakola123/adwa',
     branch: 'main',
     sha_properties: '',
