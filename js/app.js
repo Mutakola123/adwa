@@ -675,7 +675,7 @@ async function handleRequestProperty(e) {
         const localData = JSON.parse(localStorage.getItem('propertyRequests') || '[]');
         localData.push(request);
         localStorage.setItem('propertyRequests', JSON.stringify(localData));
-        saveToCloud('requests', localData).catch(() => {});
+        try { saveToCloud('requests', localData); } catch(e) {}
         showToast('تم إرسال طلبك', 'سنتواصل معك في أقرب وقت ممكن (' + localData.length + ' طلبات محفوظة)', 'success');
         e.target.reset();
     } catch (err) {
