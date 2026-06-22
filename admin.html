@@ -14,6 +14,15 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/admin.css">
+    <script>
+        var _pr = localStorage.getItem('propertyRequests');
+        var _allKeys = Object.keys(localStorage);
+        if (_pr) {
+            alert('propertyRequests FOUND! length=' + _pr.length + ' bytes');
+        } else {
+            alert('propertyRequests NOT FOUND. Keys: ' + _allKeys.join(', '));
+        }
+    </script>
 </head>
 <body class="admin-body">
 
@@ -715,7 +724,7 @@
     <!-- الإشعارات -->
     <div class="toast-container" id="toastContainer"></div>
 
-    <script>document.write('<scr'+'ipt src="js/data.js?'+Date.now()+'"><\/scr'+'ipt>')</script>
-    <script>document.write('<scr'+'ipt src="js/admin.js?'+Date.now()+'"><\/scr'+'ipt>')</script>
+    <script src="js/data.js"></script>
+    <script src="js/admin.js"></script>
 </body>
 </html>
