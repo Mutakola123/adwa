@@ -676,10 +676,10 @@ async function handleRequestProperty(e) {
         localData.push(request);
         localStorage.setItem('propertyRequests', JSON.stringify(localData));
         saveToCloud('requests', localData).catch(() => {});
-        showToast('تم إرسال طلبك', 'سنتواصل معك في أقرب وقت ممكن', 'success');
+        showToast('تم إرسال طلبك', 'سنتواصل معك في أقرب وقت ممكن (' + localData.length + ' طلبات محفوظة)', 'success');
         e.target.reset();
     } catch (err) {
-        showToast('خطأ', 'حدث خطأ أثناء إرسال الطلب', 'error');
+        showToast('خطأ', 'حدث خطأ أثناء إرسال الطلب: ' + err.message, 'error');
     }
 }
 

@@ -929,7 +929,12 @@ async function renderRequests() {
     const empty = document.getElementById('requestsEmpty');
     if (!list) return;
 
-    const allRequests = await getCustomerRequests();
+    let allRequests = [];
+    try {
+        allRequests = await getCustomerRequests();
+    } catch (err) {
+        console.error('خطأ في تحميل الطلبات:', err);
+    }
     const requests = allRequests.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
     if (requests.length === 0) {
@@ -944,45 +949,57 @@ async function renderRequests() {
     const typeLabels = { villa: 'فيلا', apartment: 'شقة', shop: 'معرض تجاري', land: 'أرض' };
     const purposeLabels = { sale: 'شراء', rent: 'إيجار' };
 
-    list.innerHTML = requests.map(r => `
-        <div class="request-card ${r.status || 'new'}">
+    list.innerHTML = requests.map(r => {
+        const name = r.name || 'غير محدد';
+        const phone = r.phone || '';
+        const email = r.email || '';
+        const rType = r.type || 'apartment';
+        const rPurpose = r.purpose || 'sale';
+        const location = r.location || '';
+        const budget = r.budget || '';
+        const details = r.details || '';
+        const status = r.status || 'new';
+        const createdAt = r.createdAt || new Date().toISOString();
+        return `
+        <div class="request-card ${status}">
             <div class="request-header">
                 <div>
-                    <h3>${r.name}</h3>
+                    <h3>${name}</h3>
                     <div class="request-contact">
-                        <a href="tel:${r.phone}"><i class="fas fa-phone"></i> ${r.phone}</a>
-                        ${r.email ? `<a href="mailto:${r.email}"><i class="fas fa-envelope"></i> ${r.email}</a>` : ''}
-                        <a href="https://wa.me/${r.phone.replace(/[^\d]/g, '')}" target="_blank"><i class="fab fa-whatsapp"></i> واتساب</a>
+                        ${phone ? `<a href="tel:${phone}"><i class="fas fa-phone"></i> ${phone}</a>` : ''}
+                        ${email ? `<a href="mailto:${email}"><i class="fas fa-envelope"></i> ${email}</a>` : ''}
+                        ${phone ? `<a href="https://wa.me/${phone.replace(/[^\d]/g, '')}" target="_blank"><i class="fab fa-whatsapp"></i> واتساب</a>` : ''}
                     </div>
                 </div>
-                <span class="request-status ${r.status || 'new'}">${getRequestStatusText(r.status)}</span>
+                <span class="request-status ${status}">${getRequestStatusText(status)}</span>
             </div>
             <div class="request-body">
                 <div class="request-details">
                     <div class="request-detail">
                         <i class="fas fa-building"></i>
-                        <span>${typeLabels[r.type] || r.type}</span>
+                        <span>${typeLabels[rType] || rType}</span>
                     </div>
                     <div class="request-detail">
                         <i class="fas fa-tag"></i>
-                        <span>${purposeLabels[r.purpose] || r.purpose}</span>
+                        <span>${purposeLabels[rPurpose] || rPurpose}</span>
                     </div>
-                    ${r.location ? `<div class="request-detail"><i class="fas fa-map-marker-alt"></i><span>${r.location}</span></div>` : ''}
-                    ${r.budget ? `<div class="request-detail"><i class="fas fa-money-bill-wave"></i><span>${formatNumber(r.budget)} ر.س</span></div>` : ''}
+                    ${location ? `<div class="request-detail"><i class="fas fa-map-marker-alt"></i><span>${location}</span></div>` : ''}
+                    ${budget ? `<div class="request-detail"><i class="fas fa-money-bill-wave"></i><span>${formatNumber(parseInt(budget) || 0)} ر.س</span></div>` : ''}
                 </div>
-                <p class="request-text">${r.details}</p>
+                <p class="request-text">${details}</p>
             </div>
             <div class="request-footer">
-                <small><i class="fas fa-clock"></i> ${new Date(r.createdAt).toLocaleString('ar-SA')}</small>
+                <small><i class="fas fa-clock"></i> ${new Date(createdAt).toLocaleString('ar-SA')}</small>
                 <div class="request-actions">
-                    ${(!r.status || r.status === 'new') ? `<button class="btn btn-sm btn-primary" onclick="setRequestStatus(${r.id}, 'contacted')"><i class="fas fa-phone"></i> تم التواصل</button>` : ''}
-                    ${r.status === 'contacted' ? `<button class="btn btn-sm btn-success" onclick="setRequestStatus(${r.id}, 'closed')"><i class="fas fa-check-double"></i> إغلاق</button>` : ''}
-                    ${r.status === 'closed' ? `<button class="btn btn-sm btn-secondary" onclick="setRequestStatus(${r.id}, 'new')"><i class="fas fa-undo"></i> إعادة فتح</button>` : ''}
+                    ${(!status || status === 'new') ? `<button class="btn btn-sm btn-primary" onclick="setRequestStatus(${r.id}, 'contacted')"><i class="fas fa-phone"></i> تم التواصل</button>` : ''}
+                    ${status === 'contacted' ? `<button class="btn btn-sm btn-success" onclick="setRequestStatus(${r.id}, 'closed')"><i class="fas fa-check-double"></i> إغلاق</button>` : ''}
+                    ${status === 'closed' ? `<button class="btn btn-sm btn-secondary" onclick="setRequestStatus(${r.id}, 'new')"><i class="fas fa-undo"></i> إعادة فتح</button>` : ''}
                     <button class="btn btn-sm btn-danger" onclick="confirmDeleteRequest(${r.id})"><i class="fas fa-trash"></i></button>
                 </div>
             </div>
         </div>
-    `).join('');
+        `;
+    }).join('');
 }
 
 function getRequestStatusText(status) {
