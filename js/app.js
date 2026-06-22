@@ -672,7 +672,7 @@ async function handleRequestProperty(e) {
     };
 
     try {
-        const localData = JSON.parse(localStorage.getItem('propertyRequests') || '[]');
+        const localData = await getCustomerRequests();
         localData.push(request);
         localStorage.setItem('propertyRequests', JSON.stringify(localData));
         await saveToCloud('requests', localData).catch(() => {});

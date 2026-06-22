@@ -339,16 +339,24 @@ const CLOUD_CONFIG = {
     sha_requests: ''
 };
 
-// حفظ توكن GitHub (من لوحة التحكم فقط)
+// حفظ توكن GitHub (في localStorage + Cookie للمشاركة بين الصفحات)
 function setGitHubToken(token) {
     CLOUD_CONFIG.githubToken = token;
     localStorage.setItem('githubToken', token);
+    document.cookie = 'githubToken=' + encodeURIComponent(token) + '; path=/; max-age=31536000; SameSite=Lax';
 }
 
-// تحميل التوكن المحفوظ
+// تحميل التوكن المحفوظ (localStorage أولاً، ثم Cookie)
 function loadGitHubToken() {
-    const stored = localStorage.getItem('githubToken');
-    if (stored) CLOUD_CONFIG.githubToken = stored;
+    let stored = localStorage.getItem('githubToken');
+    if (!stored) {
+        const match = document.cookie.match(/(?:^|;\s*)githubToken=([^;]*)/);
+        if (match) stored = decodeURIComponent(match[1]);
+    }
+    if (stored) {
+        CLOUD_CONFIG.githubToken = stored;
+        localStorage.setItem('githubToken', stored);
+    }
 }
 loadGitHubToken();
 
