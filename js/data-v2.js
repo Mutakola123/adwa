@@ -555,7 +555,9 @@ async function setPropertyStatus(id, status) {
 // الحصول على طلبات العملاء
 async function getCustomerRequests() {
     const stored = localStorage.getItem('propertyRequests');
-    return stored ? JSON.parse(stored) : [];
+    const parsed = stored ? JSON.parse(stored) : [];
+    console.log('[DEBUG] getCustomerRequests:', parsed.length, 'items, raw length:', stored ? stored.length : 0);
+    return parsed;
 }
 
 // تحديث حالة طلب
