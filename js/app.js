@@ -675,11 +675,10 @@ async function handleRequestProperty(e) {
         const localData = JSON.parse(localStorage.getItem('propertyRequests') || '[]');
         localData.push(request);
         localStorage.setItem('propertyRequests', JSON.stringify(localData));
-        await saveToCloud('requests', localData).catch(() => {});
+        saveToCloud('requests', localData).catch(() => {});
         showToast('تم إرسال طلبك', 'سنتواصل معك في أقرب وقت ممكن', 'success');
         e.target.reset();
     } catch (err) {
-        console.error('خطأ:', err);
         showToast('خطأ', 'حدث خطأ أثناء إرسال الطلب', 'error');
     }
 }

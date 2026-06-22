@@ -1130,24 +1130,7 @@
     <!-- إشعارات -->
     <div class="toast-container" id="toastContainer"></div>
 
-    <script src="js/data.js?v=7"></script>
-    <script src="js/app.js?v=7"></script>
-    <script>
-        window.onerror = function(msg, url, line, col, error) {
-            var d = document.createElement('div');
-            d.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:red;color:white;padding:12px;font:14px monospace;direction:ltr;';
-            d.textContent = 'JS ERROR: ' + msg + ' (line ' + line + ')';
-            document.body.appendChild(d);
-            return false;
-        };
-        document.addEventListener('DOMContentLoaded', function() {
-            var info = 'setupForms:' + (typeof setupForms);
-            info += ' handleAdd:' + (typeof handleAddProperty);
-            info += ' handleReq:' + (typeof handleRequestProperty);
-            info += ' addForm:' + (document.getElementById('addPropertyForm') ? 'OK' : 'NO');
-            info += ' reqForm:' + (document.getElementById('requestForm') ? 'OK' : 'NO');
-            document.title = info;
-        });
-    </script>
+    <script src="js/data.js?v=8"></script>
+    <script src="js/app.js?v=8"></script>
 </body>
 </html>

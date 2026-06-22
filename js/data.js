@@ -352,7 +352,7 @@ function loadGitHubToken() {
 }
 loadGitHubToken();
 
-// حفظ بيانات في GitHub Repository
+// حفظ بيانات في GitHub Repository (مع timeout)
 async function saveToCloud(key, data) {
     if (!CLOUD_CONFIG.enabled || !CLOUD_CONFIG.githubToken) return false;
     try {
@@ -360,13 +360,15 @@ async function saveToCloud(key, data) {
         const shaKey = `sha_${key}`;
         let sha = CLOUD_CONFIG[shaKey] || '';
 
-        // جلب الـ SHA الحالي إذا لم يكن محفوظاً
         if (!sha) {
             try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 10000);
                 const headRes = await fetch(
                     `https://api.github.com/repos/${CLOUD_CONFIG.repo}/contents/data/${filename}`,
-                    { headers: { 'Authorization': `token ${CLOUD_CONFIG.githubToken}` } }
+                    { headers: { 'Authorization': `token ${CLOUD_CONFIG.githubToken}` }, signal: controller.signal }
                 );
+                clearTimeout(timeoutId);
                 if (headRes.ok) {
                     const headData = await headRes.json();
                     sha = headData.sha;
@@ -376,7 +378,6 @@ async function saveToCloud(key, data) {
         }
 
         const content = btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2))));
-
         const body = {
             message: `Update ${filename} - ${new Date().toISOString()}`,
             content: content,
@@ -384,6 +385,8 @@ async function saveToCloud(key, data) {
         };
         if (sha) body.sha = sha;
 
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000);
         const res = await fetch(
             `https://api.github.com/repos/${CLOUD_CONFIG.repo}/contents/data/${filename}`,
             {
@@ -392,9 +395,11 @@ async function saveToCloud(key, data) {
                     'Authorization': `token ${CLOUD_CONFIG.githubToken}`,
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(body)
+                body: JSON.stringify(body),
+                signal: controller.signal
             }
         );
+        clearTimeout(timeoutId);
 
         if (res.ok) {
             const result = await res.json();
@@ -403,7 +408,6 @@ async function saveToCloud(key, data) {
         }
         return false;
     } catch (err) {
-        console.error('خطأ في الحفظ السحابي:', err);
         return false;
     }
 }
@@ -461,14 +465,14 @@ async function syncFromCloud() {
 // تهيئة البيانات
 async function initializeProperties() {
     if (!_propertiesSynced) {
-        await syncFromCloud();
+        syncFromCloud().catch(() => {});
         _propertiesSynced = true;
     }
     const stored = localStorage.getItem('properties');
     if (!stored) {
         const initial = SAMPLE_PROPERTIES.map(p => ({ ...p, status: 'approved' }));
         localStorage.setItem('properties', JSON.stringify(initial));
-        await saveToCloud('properties', initial);
+        saveToCloud('properties', initial).catch(() => {});
     }
 }
 
@@ -500,8 +504,7 @@ async function addProperty(property) {
     property.status = 'pending';
     properties.push(property);
     localStorage.setItem('properties', JSON.stringify(properties));
-    // حفظ في السحابة أيضاً
-    await saveToCloud('properties', properties);
+    saveToCloud('properties', properties).catch(() => {});
     return property;
 }
 
@@ -514,7 +517,7 @@ async function addApprovedProperty(property) {
     property.status = 'approved';
     properties.push(property);
     localStorage.setItem('properties', JSON.stringify(properties));
-    await saveToCloud('properties', properties);
+    saveToCloud('properties', properties).catch(() => {});
     return property;
 }
 
@@ -525,7 +528,7 @@ async function updateProperty(id, updates) {
     if (index > -1) {
         properties[index] = { ...properties[index], ...updates };
         localStorage.setItem('properties', JSON.stringify(properties));
-        await saveToCloud('properties', properties);
+        saveToCloud('properties', properties).catch(() => {});
         return properties[index];
     }
     return null;
@@ -536,7 +539,7 @@ async function deleteProperty(id) {
     const properties = await getAllProperties();
     const filtered = properties.filter(p => p.id !== parseInt(id));
     localStorage.setItem('properties', JSON.stringify(filtered));
-    await saveToCloud('properties', filtered);
+    saveToCloud('properties', filtered).catch(() => {});
     return true;
 }
 
@@ -562,7 +565,7 @@ async function updateRequestStatus(id, status) {
     if (index > -1) {
         requests[index].status = status;
         localStorage.setItem('propertyRequests', JSON.stringify(requests));
-        await saveToCloud('requests', requests);
+        saveToCloud('requests', requests).catch(() => {});
         return requests[index];
     }
     return null;
@@ -573,7 +576,7 @@ async function deleteRequest(id) {
     const requests = await getCustomerRequests();
     const filtered = requests.filter(r => r.id !== parseInt(id));
     localStorage.setItem('propertyRequests', JSON.stringify(filtered));
-    await saveToCloud('requests', filtered);
+    saveToCloud('requests', filtered).catch(() => {});
     return true;
 }
 
