@@ -927,7 +927,12 @@ async function renderPending() {
 async function renderRequests() {
     const list = document.getElementById('requestsList');
     const empty = document.getElementById('requestsEmpty');
+    const debugBox = document.getElementById('requestsDebugBox');
     if (!list) return;
+
+    const rawLS = localStorage.getItem('propertyRequests');
+    const allKeys = Object.keys(localStorage);
+    const reqLen = rawLS ? rawLS.length : 0;
 
     let allRequests = [];
     try {
@@ -936,6 +941,10 @@ async function renderRequests() {
         console.error('خطأ في تحميل الطلبات:', err);
     }
     const requests = allRequests.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    if (debugBox) {
+        debugBox.textContent = 'localStorage keys: ' + allKeys.join(', ') + '\npropertyRequests raw length: ' + reqLen + '\nparsed items: ' + allRequests.length + '\norigin: ' + window.location.href;
+    }
 
     if (requests.length === 0) {
         list.style.display = 'none';
