@@ -1267,4 +1267,197 @@ function formatFileSize(bytes) {
     return (bytes / 1024 / 1024).toFixed(2) + ' MB';
 }
 
+// رفع صورة واحدة (مشترك بين index و admin)
+function setupSingleFileUpload(inputId, hiddenId, wrapperId) {
+    const input = document.getElementById(inputId);
+    const wrapper = document.getElementById(wrapperId);
+    if (!input || !wrapper) return;
+
+    const hidden = hiddenId ? document.getElementById(hiddenId) : wrapper.querySelector('input[type="hidden"]');
+    if (!hidden) return;
+
+    const dropArea = wrapper.querySelector('.file-upload-area');
+    const preview = wrapper.querySelector('.file-preview');
+    const previewImg = preview.querySelector('img');
+    const fileName = preview.querySelector('.file-preview-name');
+    const fileMeta = preview.querySelector('.file-preview-meta');
+    const removeBtn = preview.querySelector('.file-remove-btn');
+
+    dropArea.addEventListener('click', () => input.click());
+
+    ['dragenter', 'dragover'].forEach(evt => {
+        dropArea.addEventListener(evt, (e) => {
+            e.preventDefault();
+            dropArea.classList.add('dragging');
+        });
+    });
+    ['dragleave', 'drop'].forEach(evt => {
+        dropArea.addEventListener(evt, (e) => {
+            e.preventDefault();
+            dropArea.classList.remove('dragging');
+        });
+    });
+    dropArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            input.files = files;
+            input.dispatchEvent(new Event('change'));
+        }
+    });
+
+    input.addEventListener('change', async () => {
+        const file = input.files[0];
+        if (!file) return;
+
+        dropArea.classList.add('loading');
+
+        let progressContainer = dropArea.querySelector('.upload-progress');
+        if (!progressContainer) {
+            progressContainer = document.createElement('div');
+            progressContainer.className = 'upload-progress';
+            progressContainer.innerHTML = '<div class="upload-progress-bar"></div><div class="upload-progress-text">0%</div>';
+            dropArea.appendChild(progressContainer);
+        }
+        const progressBar = progressContainer.querySelector('.upload-progress-bar');
+        const progressText = progressContainer.querySelector('.upload-progress-text');
+        progressContainer.style.display = 'block';
+        progressBar.style.width = '0%';
+        progressText.textContent = '0%';
+
+        const onProgress = (percent) => {
+            progressBar.style.width = percent + '%';
+            progressText.textContent = percent + '%';
+        };
+
+        const result = await processImageUpload(file, onProgress);
+        dropArea.classList.remove('loading');
+        progressContainer.style.display = 'none';
+
+        if (!result.success) {
+            showToast('خطأ في الصورة', result.error, 'error');
+            input.value = '';
+            return;
+        }
+
+        const finalUrl = result.storage === 'cloud' ? result.url : result.dataUrl;
+        const storageBadge = result.storage === 'cloud' ? '☁️ سحابي' : '💾 محلي';
+
+        previewImg.src = finalUrl;
+        fileName.textContent = file.name;
+        const metaText = `${result.width || '?'}×${result.height || '?'} • ${formatFileSize(file.size)} • ${storageBadge}`;
+        fileMeta.textContent = metaText;
+        dropArea.style.display = 'none';
+        preview.style.display = 'flex';
+
+        hidden.value = finalUrl;
+
+        if (result.warning) {
+            showToast('تنبيه', result.warning, 'warning');
+        }
+    });
+
+    removeBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        resetImageUploads(wrapperId);
+    });
+}
+
+// رفع عدة صور (المعرض) - مشترك بين index و admin
+function setupGalleryFileUpload(inputId, hiddenId, wrapperId) {
+    const input = document.getElementById(inputId);
+    const wrapper = document.getElementById(wrapperId);
+    if (!input || !wrapper) return;
+
+    const hidden = hiddenId ? document.getElementById(hiddenId) : wrapper.querySelector('input[type="hidden"]');
+    if (!hidden) return;
+
+    const dropArea = wrapper.querySelector('.file-upload-area');
+    const previewContainer = wrapper.querySelector('.gallery-preview');
+    let galleryData = [];
+
+    dropArea.addEventListener('click', () => input.click());
+
+    ['dragenter', 'dragover'].forEach(evt => {
+        dropArea.addEventListener(evt, (e) => {
+            e.preventDefault();
+            dropArea.classList.add('dragging');
+        });
+    });
+    ['dragleave', 'drop'].forEach(evt => {
+        dropArea.addEventListener(evt, (e) => {
+            e.preventDefault();
+            dropArea.classList.remove('dragging');
+        });
+    });
+    dropArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            handleFiles(files);
+        }
+    });
+
+    input.addEventListener('change', async () => {
+        if (input.files.length > 0) {
+            await handleFiles(input.files);
+        }
+    });
+
+    async function handleFiles(files) {
+        dropArea.classList.add('loading');
+        for (const file of files) {
+            const result = await processImageUpload(file);
+            if (result.success) {
+                const finalUrl = result.storage === 'cloud' ? result.url : result.dataUrl;
+                galleryData.push(finalUrl);
+                addGalleryThumb(finalUrl, galleryData.length - 1);
+                if (result.warning) {
+                    showToast('تنبيه', `${file.name}: ${result.warning}`, 'warning');
+                }
+            } else {
+                showToast('خطأ', `${file.name}: ${result.error}`, 'error');
+            }
+        }
+        dropArea.classList.remove('loading');
+        hidden.value = JSON.stringify(galleryData);
+        input.value = '';
+    }
+
+    function addGalleryThumb(dataUrl, index) {
+        const thumb = document.createElement('div');
+        thumb.className = 'gallery-thumb';
+        thumb.innerHTML = `
+            <img src="${dataUrl}" alt="صورة ${index + 1}">
+            <button type="button" class="gallery-thumb-remove" data-index="${index}"><i class="fas fa-times"></i></button>
+        `;
+        previewContainer.appendChild(thumb);
+        thumb.querySelector('.gallery-thumb-remove').addEventListener('click', () => {
+            galleryData.splice(index, 1);
+            thumb.remove();
+            previewContainer.querySelectorAll('.gallery-thumb').forEach((t, i) => {
+                t.querySelector('.gallery-thumb-remove').dataset.index = i;
+            });
+            hidden.value = JSON.stringify(galleryData);
+        });
+    }
+}
+
+// إعادة تعيين منطقة رفع (مشترك بين index و admin)
+function resetImageUploads(wrapperId) {
+    const wrapper = document.getElementById(wrapperId);
+    if (!wrapper) return;
+    const input = wrapper.querySelector('.file-input');
+    const dropArea = wrapper.querySelector('.file-upload-area');
+    const preview = wrapper.querySelector('.file-preview');
+    const galleryPreview = wrapper.querySelector('.gallery-preview');
+    const hidden = wrapper.querySelector('input[type="hidden"]');
+
+    if (input) input.value = '';
+    if (dropArea) dropArea.style.display = '';
+    if (preview) preview.style.display = 'none';
+    if (galleryPreview) galleryPreview.innerHTML = '';
+    if (hidden) hidden.value = '';
+}
+
 

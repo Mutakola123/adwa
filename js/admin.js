@@ -299,11 +299,9 @@ function setupAdminListeners() {
     }
 
     // رفع الصور في نماذج لوحة التحكم
-    if (typeof setupSingleFileUpload === 'function') {
-        setupSingleFileUpload('adminMainImageInput', null, 'adminMainImageUpload');
-        setupSingleFileUpload('editMainImageInput', null, 'editMainImageUpload');
-        setupGalleryFileUpload('adminGalleryImageInput', null, 'adminGalleryImageUpload');
-    }
+    setupSingleFileUpload('adminMainImageInput', null, 'adminMainImageUpload');
+    setupSingleFileUpload('editMainImageInput', null, 'editMainImageUpload');
+    setupGalleryFileUpload('adminGalleryImageInput', null, 'adminGalleryImageUpload');
 
     // إعداد نموذج GitHub Token
     setupGitHubConfig();
