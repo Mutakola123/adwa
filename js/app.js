@@ -677,7 +677,7 @@ async function handleRequestProperty(e) {
         localStorage.setItem('propertyRequests', JSON.stringify(localData));
         const verify = localStorage.getItem('propertyRequests');
         try { saveToCloud('requests', localData); } catch(e) {}
-        showToast('تم إرسال طلبك', 'سنتواصل معك في أقرب وقت ممكن | حجم البيانات: ' + (verify ? verify.length : 0) + ' بايت | المصدر: ' + window.location.protocol, 'success');
+        showToast('تم إرسال طلبك', 'حجم: ' + (verify ? verify.length : 0) + ' | ' + window.location.href, 'success');
         e.target.reset();
     } catch (err) {
         showToast('خطأ', 'حدث خطأ أثناء إرسال الطلب: ' + err.message, 'error');

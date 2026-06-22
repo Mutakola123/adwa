@@ -17,11 +17,8 @@
     <script>
         var _pr = localStorage.getItem('propertyRequests');
         var _allKeys = Object.keys(localStorage);
-        if (_pr) {
-            alert('propertyRequests FOUND! length=' + _pr.length + ' bytes');
-        } else {
-            alert('propertyRequests NOT FOUND. Keys: ' + _allKeys.join(', '));
-        }
+        var _msg = _pr ? 'FOUND len=' + _pr.length : 'NOT FOUND';
+        alert(_msg + '\n\nAdmin URL: ' + window.location.href + '\nKeys: ' + _allKeys.join(', '));
     </script>
 </head>
 <body class="admin-body">
