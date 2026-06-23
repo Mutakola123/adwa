@@ -747,7 +747,7 @@ async function renderDashboard() {
 
 function renderTypeChart(properties) {
     const types = ['villa', 'apartment', 'shop', 'land'];
-    const labels = { villa: 'فيلا', apartment: 'شقة', shop: 'معرض', land: 'أرض' };
+    const labels = { villa: 'فيلا', apartment: 'شقة', chalet: 'شالية', resthouse: 'استراحة', building: 'عمارة كاملة', room: 'غرفة', studio: 'استديو', halls: 'صالات', farm: 'مزارع', independent: 'دور مستقل', upper: 'دور علوي', shop: 'معرض', land: 'أرض' };
     const counts = types.map(t => properties.filter(p => p.type === t).length);
     const max = Math.max(...counts, 1);
 
@@ -944,7 +944,7 @@ async function renderRequests() {
     list.style.display = 'flex';
     empty.style.display = 'none';
 
-    const typeLabels = { villa: 'فيلا', apartment: 'شقة', shop: 'معرض تجاري', land: 'أرض' };
+    const typeLabels = { villa: 'فيلا', apartment: 'شقة', chalet: 'شالية', resthouse: 'استراحة', building: 'عمارة كاملة', room: 'غرفة', studio: 'استديو', halls: 'صالات', farm: 'مزارع', independent: 'دور مستقل', upper: 'دور علوي', shop: 'معرض تجاري', land: 'أرض' };
     const purposeLabels = { sale: 'شراء', rent: 'إيجار' };
 
     list.innerHTML = requests.map(r => {

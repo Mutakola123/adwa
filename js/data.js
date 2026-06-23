@@ -314,6 +314,15 @@ const PROPERTY_TYPES = {
     all: "الكل",
     villa: "فيلا",
     apartment: "شقة",
+    chalet: "شالية",
+    resthouse: "استراحة",
+    building: "عمارة كاملة",
+    room: "غرفة",
+    studio: "استديو",
+    halls: "صالات",
+    farm: "مزارع",
+    independent: "دور مستقل",
+    upper: "دور علوي",
     shop: "معرض تجاري",
     land: "أرض"
 };
