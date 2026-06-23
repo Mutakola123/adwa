@@ -1,0 +1,25 @@
+{
+    "name": "مكتب أضواء الفيصلية للخدمات العقارية",
+    "short_name": "أضواء الفيصلية",
+    "description": "مكتب عقاري متخصص في بيع وإيجار وإدارة العقارات في المزاحمية والرياض",
+    "start_url": "https://Mutakola123.github.io/adwa/",
+    "display": "standalone",
+    "background_color": "#1a1a2e",
+    "theme_color": "#d4af37",
+    "orientation": "portrait-primary",
+    "lang": "ar",
+    "dir": "rtl",
+    "scope": "https://Mutakola123.github.io/adwa/",
+    "icons": [
+        {
+            "src": "images/logo-icon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "any maskable"
+        }
+    ],
+    "categories": ["business", "finance", "real estate"],
+    "i18n": {
+        "default_locale": "ar"
+    }
+}
