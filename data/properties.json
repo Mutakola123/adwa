@@ -334,5 +334,28 @@
     "id": 13,
     "createdAt": "2026-06-22",
     "status": "approved"
+  },
+  {
+    "title": "فيلا ",
+    "type": "villa",
+    "purpose": "rent",
+    "price": 30000,
+    "area": 250,
+    "city": "muzahmiya",
+    "cityName": "المزاحمية",
+    "district": "غرناطة ",
+    "rooms": 5,
+    "bathrooms": 3,
+    "image": "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800",
+    "gallery": [
+      "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800"
+    ],
+    "description": "فيلا سكينة ",
+    "phone": "+966509503345",
+    "owner": "متوكل ",
+    "priceUnit": "شهرياً",
+    "id": 14,
+    "createdAt": "2026-06-23",
+    "status": "pending"
   }
 ]
